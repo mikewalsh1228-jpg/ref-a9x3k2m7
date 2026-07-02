@@ -212,6 +212,15 @@ table.cmp ul{margin:0;padding-left:15px}
 .catrow .cp{color:var(--ink);font-family:'Figtree';font-weight:700;white-space:nowrap}
 .catrow.oos{opacity:.5}
 .catrow .oosb{color:#ff9a9a;font-size:9.5px;font-weight:800;margin-left:6px;letter-spacing:.04em}
+.catrow.clk{cursor:pointer;border-radius:8px}
+.catrow.clk:hover{background:rgba(47,109,246,.07)}
+.jarrow{color:var(--blue-bright);font-weight:800;margin-left:6px}
+.pmg{margin-left:8px}
+.bvb{color:#7ff0a5;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);border-radius:6px;font-size:9px;font-weight:800;padding:2px 6px;margin-left:6px;letter-spacing:.03em}
+/* calculator mode segment */
+.cseg{display:flex;gap:6px;margin-bottom:14px}
+.csegb{flex:1;font-family:'Figtree';font-weight:700;font-size:13px;color:var(--ink-soft);background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:9px;cursor:pointer}
+.csegb.active{background:var(--teal);border-color:var(--teal);color:#04101f}
 /* print */
 @media print{
   header,.deals-banner,.cmpbar,.calcbtn,.iconbtn,.sortsel,.search,.filters,.note,.overlay{display:none!important}
@@ -281,9 +290,11 @@ table.cmp ul{margin:0;padding-left:15px}
     <div class="cmphead"><h2>Reconstitution Calculator</h2>
       <button class="close" aria-label="Close" onclick="closeCalc()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <div class="calcbody">
+      <div class="cseg"><button type="button" class="csegb active" data-m="fwd">Find the draw</button><button type="button" class="csegb" data-m="rev">Find the water</button></div>
       <div class="cin">
         <div class="cfield"><label>Peptide in vial (mg)</label><input id="cVial" type="number" min="0" step="any" value="10" inputmode="decimal"></div>
-        <div class="cfield"><label>BAC water added (mL)</label><input id="cWater" type="number" min="0" step="any" value="2" inputmode="decimal"></div>
+        <div class="cfield" id="cWaterWrap"><label>BAC water added (mL)</label><input id="cWater" type="number" min="0" step="any" value="2" inputmode="decimal"></div>
+        <div class="cfield" id="cTargetWrap" style="display:none"><label>Target units per dose</label><input id="cTarget" type="number" min="0" step="any" value="10" inputmode="decimal"></div>
         <div class="cfield"><label>Desired dose</label><div class="crow"><input id="cDose" type="number" min="0" step="any" value="250" inputmode="decimal"><select id="cUnit"><option value="mcg">mcg</option><option value="mg">mg</option></select></div></div>
         <div class="cfield"><label>Syringe size</label><select id="cSyr"><option value="100">1 mL (100 units)</option><option value="50">0.5 mL (50 units)</option><option value="30">0.3 mL (30 units)</option></select></div>
       </div>
@@ -1664,7 +1675,8 @@ const calcOverlay=document.getElementById('calcOverlay');
 document.getElementById('calcbtn').onclick=()=>{calcOverlay.classList.add('open');document.body.style.overflow='hidden';calc();};
 function closeCalc(){calcOverlay.classList.remove('open');document.body.style.overflow='';}
 calcOverlay.onclick=e=>{if(e.target===calcOverlay)closeCalc();};
-['cVial','cWater','cDose','cUnit','cSyr'].forEach(id=>{const el=document.getElementById(id);el.oninput=calc;el.onchange=calc;});
+['cVial','cWater','cDose','cUnit','cSyr','cTarget'].forEach(id=>{const el=document.getElementById(id);if(el){el.oninput=calc;el.onchange=calc;}});
+document.querySelectorAll('.csegb').forEach(b=>{b.onclick=()=>{calcMode=b.dataset.m;document.querySelectorAll('.csegb').forEach(x=>x.classList.toggle('active',x===b));document.getElementById('cWaterWrap').style.display=calcMode==='rev'?'none':'';document.getElementById('cTargetWrap').style.display=calcMode==='rev'?'':'none';calc();};});
 function fmt(n,dp){dp=(dp==null)?1:dp;if(!isFinite(n))return '—';const r=Math.round(n*Math.pow(10,dp))/Math.pow(10,dp);return String(r);}
 function drawSyringe(units,cap){
   const x0=14,x1=334,frac=Math.max(0,Math.min(1,units/cap)),fillW=(x1-x0)*frac,inRange=units<=cap&&units>0;
@@ -1681,15 +1693,33 @@ function drawSyringe(units,cap){
     +'<rect x="'+x1+'" y="10" width="6" height="22" rx="2" fill="#22344f"/>'
     +ticks+mark+'</svg>';
 }
+let calcMode='fwd';
 function calc(){
   const vial=parseFloat(document.getElementById('cVial').value),
-        water=parseFloat(document.getElementById('cWater').value),
         dose=parseFloat(document.getElementById('cDose').value),
         unit=document.getElementById('cUnit').value,
         cap=parseInt(document.getElementById('cSyr').value,10);
   const out=document.getElementById('calcOut'),syr=document.getElementById('syrBox');
-  if(!(vial>0)||!(water>0)||!(dose>0)){out.innerHTML='<div class="cwarn">Enter the vial mg, water mL, and a dose to calculate.</div>';syr.innerHTML='';return;}
   const doseMcg=unit==='mg'?dose*1000:dose;
+  if(calcMode==='rev'){
+    const target=parseFloat(document.getElementById('cTarget').value);
+    if(!(vial>0)||!(dose>0)||!(target>0)){out.innerHTML='<div class="cwarn">Enter vial mg, desired dose, and target units per dose.</div>';syr.innerHTML='';return;}
+    const volMl=target/100;
+    const water=(vial*1000)*volMl/doseMcg;
+    const concMcgMl=(vial*1000)/water;
+    const mcgPerUnit=concMcgMl/100;
+    const dosesPerVial=(vial*1000)/doseMcg;
+    out.innerHTML='<div class="cbig"><span>Add this much water</span><b>'+fmt(water,2)+' mL</b><small>then each '+dose+' '+unit+' dose = '+fmt(target)+' units</small></div>'
+      +'<div class="cgrid"><div class="ccell"><span>Per unit</span><b>'+fmt(mcgPerUnit)+'</b><small>mcg / unit</small></div><div class="ccell"><span>Concentration</span><b>'+fmt(vial/water,2)+'</b><small>mg / mL</small></div><div class="ccell"><span>Doses / vial</span><b>'+fmt(dosesPerVial,1)+'</b><small>at this dose</small></div></div>';
+    const w=[];
+    if(target>cap)w.push('Target draw ('+fmt(target)+' units) exceeds your '+cap+'-unit syringe — pick a smaller target or bigger syringe.');
+    if(water>0&&water<0.5)w.push('That needs very little water ('+fmt(water,2)+' mL) — hard to measure; consider a smaller target-units number.');
+    if(w.length)out.innerHTML+='<div class="cwarn">'+w.join('<br>')+'</div>';
+    syr.innerHTML=drawSyringe(target,cap);
+    return;
+  }
+  const water=parseFloat(document.getElementById('cWater').value);
+  if(!(vial>0)||!(water>0)||!(dose>0)){out.innerHTML='<div class="cwarn">Enter the vial mg, water mL, and a dose to calculate.</div>';syr.innerHTML='';return;}
   const concMcgMl=(vial*1000)/water;
   const volMl=doseMcg/concMcgMl;
   const units=volMl*100;
@@ -1892,17 +1922,58 @@ const CATALOG=[
   ['Telmisartan','40mg 30ct','$65',''],['Telmisartan','80mg 30ct','$75','OOS'],['Viagra (pharma)','100mg 20ct','$120','']
  ]}
 ];
+const CATKW=[
+ [/tren\b|trenbolone|tri-?tren|parabolan|ripblend/i,'Trenbolone'],
+ [/\bdeca\b|\bnpp\b|nandrolone/i,'Nandrolone (Deca / NPP)'],
+ [/boldenone cyp|\bdhb\b/i,'DHB (Dihydroboldenone)'],
+ [/\beq\b|boldenone/i,'Boldenone (EQ)'],
+ [/mast /i,'Masteron (Prop / Enan)'],
+ [/\bment\b|trestolone/i,'Trestolone (MENT)'],
+ [/primo acetate/i,'Primo Acetate (oral)'],
+ [/primo e|primobolan/i,'Primobolan'],
+ [/anadrol/i,'Anadrol (Oxymetholone)'],[/superdrol/i,'Superdrol (Methasterone)'],
+ [/\bhalo\b|halotestin/i,'Halotestin (Fluoxymesterone)'],[/dianabol|dbol/i,'Dianabol (Methandrostenolone)'],
+ [/winstrol/i,'Winstrol (Stanozolol)'],[/anavar/i,'Anavar (Oxandrolone)'],[/turinabol|tbol/i,'Turinabol (Tbol)'],[/proviron/i,'Proviron (Mesterolone)'],
+ [/test |testosterone|sustanon/i,'Testosterone'],
+ [/\bclen\b|clenbuterol/i,'Clenbuterol'],[/enclomiphene|clomid/i,'Clomid / Enclomiphene'],[/nolvadex|tamoxifen/i,'Tamoxifen (Nolvadex)'],
+ [/arimidex/i,'Anastrozole (Arimidex)'],[/aromasin|letrozole/i,'Aromasin / Letrozole'],[/cabergoline/i,'Cabergoline'],
+ [/\bhcg\b|\bhmg\b/i,'HCG / HMG'],[/\bhgh\b|somatropin/i,'HGH (Somatropin)'],[/\bigf/i,'IGF-1 LR3'],
+ [/mk-?677/i,'MK-677 (Ibutamoren)'],[/rad-?140/i,'RAD-140 (Testolone)'],[/yk-?11/i,'YK-11'],[/ostarine|mk-?2866/i,'Ostarine (MK-2866)'],
+ [/gw-?501516|cardarine/i,'GW-501516 (Cardarine)'],[/stenabolic|sr9009/i,'SR9009 (Stenabolic)'],
+ [/metformin/i,'Metformin'],[/atorvastatin|rosuvastatin|ezetimibe/i,'Statins (Atorva / Rosuva)'],[/losartan|telmisartan/i,'ARBs (Telmisartan / Losartan)'],
+ [/metoprolol|nebivolol/i,'Beta-blockers (Metoprolol / Nebivolol)'],[/furosemide|spironolactone/i,'Diuretics (Furosemide / Spironolactone)'],
+ [/\bt3\b|\bt4\b|thyroxine/i,'T3 / T4 (Thyroid)'],[/accutane/i,'Accutane (Isotretinoin)'],[/cialis|tadalafil|viagra|sildenafil|cock bombs/i,'PDE5 (Tadalafil / Sildenafil)'],
+ [/gabapentin/i,'Gabapentin'],[/buspirone/i,'Buspirone'],[/amoxicillin|doxycycline/i,'Antibiotics (Amoxicillin / Doxycycline)'],[/ivermectin/i,'Ivermectin'],
+ [/vitamin d/i,'Vitamin D / B12 / NAD+ / Glutathione'],[/methylene blue|methyl blue/i,'Methylene Blue'],[/tesofensine/i,'Tesofensine'],
+ [/glow|klow|wolverine/i,'Glow / Klow / Wolverine'],[/pinealon|vesugen/i,'Pinealon / Vesugen'],[/nad\+|nad /i,'NAD+ / NMN'],[/glutathione/i,'Glutathione'],
+ [/lipo blend/i,'Lipo Blend (MIC Plus)'],[/cjc/i,'CJC-1295 (± DAC)'],[/peg-?mgf|^mgf/i,'PEG-MGF / MGF'],[/5-amino/i,'5-Amino-1MQ']
+];
+function catMatch(name){
+  for(let i=0;i<CATKW.length;i++){ if(CATKW[i][0].test(name)){ const d=D.find(x=>x.n===CATKW[i][1]); if(d)return d; } }
+  const q=norm(name);
+  return D.find(x=>{const t=norm(searchTerm(x));return t.length>3&&q.indexOf(t)>-1;})||null;
+}
+function jumpTo(name){closeCat();const d=D.find(x=>x.n===name);if(d)openModal(d);}
+function parseMg(size){const m=(size||'').match(/^([\d.]+)\s*mg$/i);return m?parseFloat(m[1]):null;}
+function parsePrice(p){const m=(p||'').match(/\$([\d,]+(?:\.\d+)?)/);return m?parseFloat(m[1].replace(/,/g,'')):null;}
 function catRender(){
   const q=norm(document.getElementById('catQ').value||'');
   let h='';
   CATALOG.forEach(sec=>{
     const items=sec.items.filter(it=>!q||norm(it[0]+' '+(it[1]||'')).includes(q));
     if(!items.length)return;
+    const perMg={},grp={};
+    items.forEach((it,idx)=>{const mg=parseMg(it[1]),pr=parsePrice(it[2]);if(mg&&pr){const pm=pr/mg;perMg[idx]=pm;const d=catMatch(it[0]);const key=d?d.n:it[0];(grp[key]=grp[key]||[]).push([idx,pm]);}});
+    const best={};Object.keys(grp).forEach(k=>{if(grp[k].length>1){let mn=grp[k][0];grp[k].forEach(x=>{if(x[1]<mn[1])mn=x;});best[mn[0]]=1;}});
     h+='<div class="catsec">'+sec.s+'</div>';
-    items.forEach(it=>{
+    items.forEach((it,idx)=>{
       const oos=(it[3]||'').toUpperCase().indexOf('OOS')>-1;
+      const d=catMatch(it[0]);
       const note=(it[3]&&!oos)?' <span class="cs">· '+it[3]+'</span>':'';
-      h+='<div class="catrow'+(oos?' oos':'')+'"><div><span class="cn">'+it[0]+'</span> <span class="cs">'+(it[1]||'')+'</span>'+(oos?'<span class="oosb">OUT OF STOCK</span>':'')+note+'</div><div class="cp">'+it[2]+'</div></div>';
+      const pm=perMg[idx]!=null?' <span class="cs pmg">$'+fmt(perMg[idx],2)+'/mg</span>':'';
+      const bv=best[idx]?' <span class="bvb">BEST $/mg</span>':'';
+      const oc=d?' onclick="jumpTo(\''+d.n.replace(/'/g,"\\'")+'\')"':'';
+      h+='<div class="catrow'+(oos?' oos':'')+(d?' clk':'')+'"'+oc+'><div><span class="cn">'+it[0]+'</span> <span class="cs">'+(it[1]||'')+'</span>'+(d?'<span class="jarrow">›</span>':'')+(oos?'<span class="oosb">OUT OF STOCK</span>':'')+note+'</div><div class="cp">'+it[2]+pm+bv+'</div></div>';
     });
   });
   document.getElementById('catBody').innerHTML=h||'<div class="cnote" style="border:none">No matches.</div>';
