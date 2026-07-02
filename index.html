@@ -145,6 +145,28 @@ table.cmp ul{margin:0;padding-left:15px}
 .field.dosefield{border:1px solid rgba(34,211,238,.28);background:linear-gradient(90deg,rgba(34,211,238,.06),transparent);border-radius:12px;padding:12px 14px;margin:6px 0}
 .field.dosefield .lab{color:var(--teal)}
 .field.dosefield .val b{color:var(--ink)}
+/* calculator */
+.calcbtn{display:inline-flex;align-items:center;gap:7px;font-family:'Figtree';font-weight:700;font-size:13px;color:#04101f;background:var(--teal);border:1px solid var(--teal);border-radius:10px;padding:9px 13px;cursor:pointer;white-space:nowrap}
+.calcbtn svg{width:15px;height:15px;stroke:#04101f;fill:none;stroke-width:2}
+.calcmodal{background:linear-gradient(180deg,var(--panel),var(--bg-2));border:1px solid var(--line);border-radius:20px;max-width:560px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:pop .18s ease}
+.calcbody{padding:20px 24px 24px}
+.cin{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cfield label{display:block;font-family:'Figtree';font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-bright);margin-bottom:6px}
+.cfield input,.cfield select{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:15px;padding:10px 12px;border-radius:10px;font-family:inherit;outline:none}
+.cfield input:focus,.cfield select:focus{border-color:var(--teal)}
+.crow{display:flex;gap:8px}.crow input{flex:1}
+.cbig{background:linear-gradient(90deg,rgba(34,211,238,.12),transparent);border:1px solid rgba(34,211,238,.3);border-radius:14px;padding:16px;margin:18px 0 0;text-align:center}
+.cbig span{display:block;font-family:'Figtree';font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute)}
+.cbig b{display:block;font-family:'Figtree';font-weight:900;font-size:34px;color:#fff;letter-spacing:-.02em;margin:2px 0}
+.cbig small{color:var(--ink-soft);font-size:13px}
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.ccell{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+.ccell span{display:block;font-family:'Figtree';font-weight:600;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-mute)}
+.ccell b{display:block;font-family:'Figtree';font-weight:800;font-size:19px;color:var(--ink)}
+.ccell small{color:var(--ink-mute);font-size:11px}
+#syrBox{margin:18px 0 4px}
+.cwarn{margin-top:14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:12px 14px;color:#ffb4b4;font-size:13px}
+.cnote{margin-top:14px;font-size:12px;color:var(--ink-mute);border-top:1px dashed var(--line);padding-top:10px}
 </style>
 </head>
 <body>
@@ -157,6 +179,7 @@ table.cmp ul{margin:0;padding-left:15px}
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input id="q" type="text" placeholder="Search a compound (e.g. tirzepatide, tren, BPC)…" autocomplete="off">
       </div>
+      <button class="calcbtn" id="calcbtn" title="Reconstitution calculator"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M12 10h2M16 10h0M8 14h2M12 14h2M16 14h0M8 18h6"/></svg>Calculator</button>
       <select class="sortsel" id="sort" aria-label="Sort compounds">
         <option value="az">Sort: A–Z</option>
         <option value="safety">Sort: Safest first</option>
@@ -190,6 +213,24 @@ table.cmp ul{margin:0;padding-left:15px}
 
 <div class="overlay" id="cmpOverlay">
   <div class="cmpmodal" id="cmpmodal"></div>
+</div>
+
+<div class="overlay" id="calcOverlay">
+  <div class="calcmodal">
+    <div class="cmphead"><h2>Reconstitution Calculator</h2>
+      <button class="close" aria-label="Close" onclick="closeCalc()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="calcbody">
+      <div class="cin">
+        <div class="cfield"><label>Peptide in vial (mg)</label><input id="cVial" type="number" min="0" step="any" value="10" inputmode="decimal"></div>
+        <div class="cfield"><label>BAC water added (mL)</label><input id="cWater" type="number" min="0" step="any" value="2" inputmode="decimal"></div>
+        <div class="cfield"><label>Desired dose</label><div class="crow"><input id="cDose" type="number" min="0" step="any" value="250" inputmode="decimal"><select id="cUnit"><option value="mcg">mcg</option><option value="mg">mg</option></select></div></div>
+        <div class="cfield"><label>Syringe size</label><select id="cSyr"><option value="100">1 mL (100 units)</option><option value="50">0.5 mL (50 units)</option><option value="30">0.3 mL (30 units)</option></select></div>
+      </div>
+      <div id="calcOut"></div>
+      <div id="syrBox"></div>
+      <div class="cnote">Assumes a U-100 insulin syringe (100 units = 1 mL). Reconstituted-peptide math tool only — not dosing advice. Wrong dilution is the most common cause of accidental overdose, so double-check every number.</div>
+    </div>
+  </div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -1427,7 +1468,56 @@ function openCompare(){
 function closeCompare(){cmpOverlay.classList.remove('open');document.body.style.overflow='';}
 cmpOverlay.onclick=e=>{if(e.target===cmpOverlay)closeCompare();};
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCompare();}});
+/* ---------- reconstitution calculator ---------- */
+const calcOverlay=document.getElementById('calcOverlay');
+document.getElementById('calcbtn').onclick=()=>{calcOverlay.classList.add('open');document.body.style.overflow='hidden';calc();};
+function closeCalc(){calcOverlay.classList.remove('open');document.body.style.overflow='';}
+calcOverlay.onclick=e=>{if(e.target===calcOverlay)closeCalc();};
+['cVial','cWater','cDose','cUnit','cSyr'].forEach(id=>{const el=document.getElementById(id);el.oninput=calc;el.onchange=calc;});
+function fmt(n,dp){dp=(dp==null)?1:dp;if(!isFinite(n))return '—';const r=Math.round(n*Math.pow(10,dp))/Math.pow(10,dp);return String(r);}
+function drawSyringe(units,cap){
+  const x0=14,x1=334,frac=Math.max(0,Math.min(1,units/cap)),fillW=(x1-x0)*frac,inRange=units<=cap&&units>0;
+  const step=cap<=30?5:(cap<=50?10:10);let ticks='';
+  for(let u=0;u<=cap;u+=step){const x=x0+(x1-x0)*(u/cap);
+    ticks+='<line x1="'+x+'" y1="26" x2="'+x+'" y2="34" stroke="#7488a6" stroke-width="1"/><text x="'+x+'" y="47" fill="#7488a6" font-size="9" text-anchor="middle">'+u+'</text>';}
+  const markX=x0+(x1-x0)*frac,col=inRange?'#5b9bff':'#ef4444',fillC=inRange?'#22d3ee':'#ef4444';
+  let mark='';
+  if(units>0){const mx=Math.min(markX,x1);mark='<line x1="'+mx+'" y1="8" x2="'+mx+'" y2="40" stroke="'+col+'" stroke-width="2" stroke-dasharray="3 2"/><text x="'+mx+'" y="61" fill="'+col+'" font-size="12" font-weight="700" text-anchor="middle">'+fmt(units)+' units</text>';}
+  return '<svg viewBox="0 0 360 68" width="100%">'
+    +'<line x1="0" y1="21" x2="'+x0+'" y2="21" stroke="#22344f" stroke-width="2"/>'
+    +'<rect x="'+x0+'" y="14" width="'+(x1-x0)+'" height="14" rx="4" fill="#0e1626" stroke="#22344f"/>'
+    +'<rect x="'+x0+'" y="14" width="'+Math.min(fillW,x1-x0)+'" height="14" rx="4" fill="'+fillC+'" opacity="0.5"/>'
+    +'<rect x="'+x1+'" y="10" width="6" height="22" rx="2" fill="#22344f"/>'
+    +ticks+mark+'</svg>';
+}
+function calc(){
+  const vial=parseFloat(document.getElementById('cVial').value),
+        water=parseFloat(document.getElementById('cWater').value),
+        dose=parseFloat(document.getElementById('cDose').value),
+        unit=document.getElementById('cUnit').value,
+        cap=parseInt(document.getElementById('cSyr').value,10);
+  const out=document.getElementById('calcOut'),syr=document.getElementById('syrBox');
+  if(!(vial>0)||!(water>0)||!(dose>0)){out.innerHTML='<div class="cwarn">Enter the vial mg, water mL, and a dose to calculate.</div>';syr.innerHTML='';return;}
+  const doseMcg=unit==='mg'?dose*1000:dose;
+  const concMcgMl=(vial*1000)/water;
+  const volMl=doseMcg/concMcgMl;
+  const units=volMl*100;
+  const mcgPerUnit=concMcgMl/100;
+  const dosesPerVial=(vial*1000)/doseMcg;
+  out.innerHTML='<div class="cbig"><span>Draw to this line</span><b>'+fmt(units)+' units</b><small>'+fmt(volMl,3)+' mL on a U-100 insulin syringe</small></div>'
+    +'<div class="cgrid">'
+    +'<div class="ccell"><span>Per unit</span><b>'+fmt(mcgPerUnit)+'</b><small>mcg / unit</small></div>'
+    +'<div class="ccell"><span>Concentration</span><b>'+fmt(vial/water,2)+'</b><small>mg / mL</small></div>'
+    +'<div class="ccell"><span>Doses / vial</span><b>'+fmt(dosesPerVial,1)+'</b><small>at this dose</small></div>'
+    +'</div>';
+  const w=[];
+  if(units>cap)w.push('This draw ('+fmt(units)+' units) is bigger than your '+cap+'-unit syringe. Add more water, use a larger syringe, or split it.');
+  if(units>0&&units<2)w.push('Very small draw ('+fmt(units)+' units) — hard to measure accurately. Use less water so the dose lands in a readable range.');
+  if(w.length)out.innerHTML+='<div class="cwarn">'+w.join('<br>')+'</div>';
+  syr.innerHTML=drawSyringe(units,cap);
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCompare();closeCalc();}});
 
 render();
 </script>
