@@ -221,6 +221,21 @@ table.cmp ul{margin:0;padding-left:15px}
 .cseg{display:flex;gap:6px;margin-bottom:14px}
 .csegb{flex:1;font-family:'Figtree';font-weight:700;font-size:13px;color:var(--ink-soft);background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:9px;cursor:pointer}
 .csegb.active{background:var(--teal);border-color:var(--teal);color:#04101f}
+/* stacks */
+.stkcard{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--panel-2)}
+.stkhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.stkhead b{font-family:'Figtree';font-weight:800;font-size:16px;color:var(--ink)}
+.stkdel{background:transparent;border:1px solid var(--line);color:var(--ink-soft);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:'Figtree'}
+.stkdel:hover{border-color:var(--red);color:#ff9a9a}
+.stkitem{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+.stkn{flex:1;min-width:0;font-size:13.5px;color:var(--ink);font-weight:600}
+.stkin{width:86px;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 8px;font-size:12.5px;font-family:inherit;outline:none}
+.stkin:focus{border-color:var(--blue)}
+.stkx{background:transparent;border:none;color:var(--ink-mute);cursor:pointer;font-size:14px;padding:4px}
+.stkx:hover{color:#ff9a9a}
+.stkactions{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.stkadd{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);color:var(--ink-soft);border-radius:8px;padding:7px 9px;font-size:12.5px;font-family:inherit}
+.stkcost{color:var(--teal);font-family:'Figtree';font-weight:700;font-size:13px;margin-left:auto}
 /* print */
 @media print{
   header,.deals-banner,.cmpbar,.calcbtn,.iconbtn,.sortsel,.search,.filters,.note,.overlay{display:none!important}
@@ -247,6 +262,7 @@ table.cmp ul{margin:0;padding-left:15px}
       <button class="iconbtn" id="resbtn" title="Safety & lab resources"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Resources</button>
       <button class="iconbtn" id="printbtn" title="Print / Save PDF"><svg viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>Print</button>
       <button class="iconbtn" id="catbtn" title="Full catalog &amp; prices"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>Catalog</button>
+      <button class="iconbtn" id="stacksbtn" title="My stacks"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Stacks</button>
       <button class="iconbtn" id="themebtn" title="Toggle light/dark"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
       <select class="sortsel" id="sort" aria-label="Sort compounds">
         <option value="az">Sort: A–Z</option>
@@ -332,6 +348,14 @@ table.cmp ul{margin:0;padding-left:15px}
     <div class="catsearch"><input id="catQ" type="search" placeholder="Filter the catalog…" autocomplete="off"></div>
     <a class="catlink" id="catFormLink" target="_blank" rel="noopener" href="https://script.google.com/macros/s/AKfycbypYqCxwXZBcYhMtkghQ41uzLwGhTaO8ovKyDs0gzJW8k1MfBR6hcmlscTjjXlsVOk9HA/exec"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#04101f;fill:none;stroke-width:2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/></svg>Open live order form ↗</a>
     <div class="catwrap" id="catBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="stacksOverlay">
+  <div class="catmodal">
+    <div class="cmphead"><h2>My Stacks</h2><button class="close" aria-label="Close" onclick="closeStacks()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="catsearch"><div class="crow"><input id="newStackName" type="text" placeholder="New stack name (e.g. Recovery)" autocomplete="off"><button class="csegb active" style="flex:0 0 auto;padding:9px 16px" onclick="stackCreate()">Add</button></div></div>
+    <div class="catwrap" id="stacksBody"></div>
   </div>
 </div>
 
@@ -1845,17 +1869,18 @@ function checkInteractions(items){
   }
   return out;
 }
-function openInt(){
-  const items=D.filter(x=>selected.has(x.n)); if(items.length<2)return;
+function showInteractions(items,title){
   const f=checkInteractions(items); const rank={Major:0,Moderate:1}; f.sort((a,b)=>rank[a.sev]-rank[b.sev]);
   const chip={Major:'b-r',Moderate:'b-o'};
-  let h='<div style="padding:6px 12px 18px"><p style="color:var(--ink-soft);font-size:13.5px;margin:6px 0 14px">Checking: '+items.map(x=>x.n).join(', ')+'</p>';
-  if(!f.length){h+='<div class="cwarn" style="color:var(--ink-soft);background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.3)">No overlapping-risk flags found for this combination in our rule set. Absence of a flag is not proof of safety.</div>';}
+  let h='<div style="padding:6px 12px 18px"><p style="color:var(--ink-soft);font-size:13.5px;margin:6px 0 14px">'+(title?'<b style="color:var(--ink)">'+title+'</b> — ':'')+'Checking: '+(items.map(x=>x.n).join(', ')||'—')+'</p>';
+  if(items.length<2){h+='<div class="cwarn" style="color:var(--ink-soft)">Add at least two compounds to check for overlaps.</div>';}
+  else if(!f.length){h+='<div class="cwarn" style="color:var(--ink-soft);background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.3)">No overlapping-risk flags found in our rule set. Absence of a flag is not proof of safety.</div>';}
   else{f.forEach(x=>{h+='<div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:9px;background:var(--panel-2)"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><b style="font-family:Figtree;color:var(--ink)">'+x.pair+'</b><span class="badge '+chip[x.sev]+'">'+x.sev+'</span></div><div style="color:var(--ink-soft);font-size:13.5px;margin-top:6px">'+x.txt+'</div></div>';});}
   h+='<div class="cnote">Rule-based overlap checker (class effects: liver, blood pressure, blood sugar, hormones). Not a comprehensive drug-interaction database — verify with Drugs.com and a clinician.</div></div>';
   document.getElementById('intBody').innerHTML=h;
   document.getElementById('intOverlay').classList.add('open');document.body.style.overflow='hidden';
 }
+function openInt(){showInteractions(D.filter(x=>selected.has(x.n)),'');}
 function closeInt(){document.getElementById('intOverlay').classList.remove('open');document.body.style.overflow='';}
 document.getElementById('intOverlay').onclick=e=>{if(e.target.id==='intOverlay')closeInt();};
 document.getElementById('intgo').onclick=openInt;
@@ -1983,9 +2008,48 @@ function closeCat(){document.getElementById('catOverlay').classList.remove('open
 document.getElementById('catOverlay').onclick=e=>{if(e.target.id==='catOverlay')closeCat();};
 document.getElementById('catQ').oninput=catRender;
 
+/* ---------- stack builder ---------- */
+const OPTS=D.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(d=>'<option value="'+d.n.replace(/"/g,'&quot;')+'">'+d.n+'</option>').join('');
+let STACKS=[];try{STACKS=JSON.parse(localStorage.getItem('stacks')||'[]');}catch(e){}
+function saveStacks(){try{localStorage.setItem('stacks',JSON.stringify(STACKS));}catch(e){}}
+function stackId(){return 's'+(STACKS.reduce((m,s)=>Math.max(m,parseInt((s.id||'s0').slice(1),10)||0),0)+1);}
+function cheapestPrice(name){let min=null;CATALOG.forEach(sec=>sec.items.forEach(it=>{const d=catMatch(it[0]);if(d&&d.n===name){const p=parsePrice(it[2]);if(p&&(min===null||p<min))min=p;}}));return min;}
+function esc(v){return (v||'').replace(/"/g,'&quot;');}
+function renderStacks(){
+  const b=document.getElementById('stacksBody');
+  if(!STACKS.length){b.innerHTML='<div class="cnote" style="border:none">No stacks yet. Name one above and tap Add, then add compounds to it.</div>';return;}
+  let h='';
+  STACKS.forEach(s=>{
+    let cost=0,have=false;
+    h+='<div class="stkcard"><div class="stkhead"><b>'+s.name+'</b><button class="stkdel" onclick="stackDelete(\''+s.id+'\')">Delete</button></div>';
+    if(!s.items.length)h+='<div class="cs" style="padding:6px 0;color:var(--ink-mute)">No compounds yet — add one below.</div>';
+    s.items.forEach((it,idx)=>{
+      const cp=cheapestPrice(it.n); if(cp){cost+=cp;have=true;}
+      h+='<div class="stkitem"><div class="stkn">'+it.n+(cp?' <span class="cs">~$'+fmt(cp,0)+'</span>':'')+'</div>'
+        +'<input class="stkin" placeholder="dose" value="'+esc(it.dose)+'" oninput="stackEdit(\''+s.id+'\','+idx+',\'dose\',this.value)">'
+        +'<input class="stkin" placeholder="timing" value="'+esc(it.timing)+'" oninput="stackEdit(\''+s.id+'\','+idx+',\'timing\',this.value)">'
+        +'<button class="stkx" title="Remove" onclick="stackRemove(\''+s.id+'\','+idx+')">✕</button></div>';
+    });
+    h+='<div class="stkactions"><select class="stkadd" onchange="stackAdd(\''+s.id+'\',this.value);this.selectedIndex=0"><option value="">+ add compound…</option>'+OPTS+'</select>';
+    h+='<button class="csegb" style="flex:0 0 auto;padding:8px 12px" onclick="stackCheck(\''+s.id+'\')">Check interactions</button>';
+    h+='<span class="stkcost">'+(have?'~$'+fmt(cost,0)+' est.':'')+'</span></div></div>';
+  });
+  b.innerHTML=h;
+}
+function stackCreate(){const el=document.getElementById('newStackName');const nm=(el.value||'').trim();if(!nm)return;STACKS.push({id:stackId(),name:nm,items:[]});el.value='';saveStacks();renderStacks();}
+function stackDelete(id){STACKS=STACKS.filter(s=>s.id!==id);saveStacks();renderStacks();}
+function stackAdd(id,name){if(!name)return;const s=STACKS.find(x=>x.id===id);if(s&&!s.items.some(i=>i.n===name)){s.items.push({n:name,dose:'',timing:''});saveStacks();renderStacks();}}
+function stackRemove(id,idx){const s=STACKS.find(x=>x.id===id);if(s){s.items.splice(idx,1);saveStacks();renderStacks();}}
+function stackEdit(id,idx,f,v){const s=STACKS.find(x=>x.id===id);if(s&&s.items[idx]){s.items[idx][f]=v;saveStacks();}}
+function stackCheck(id){const s=STACKS.find(x=>x.id===id);if(!s)return;const items=s.items.map(i=>D.find(x=>x.n===i.n)).filter(Boolean);showInteractions(items,s.name);}
+document.getElementById('stacksbtn').onclick=()=>{document.getElementById('stacksOverlay').classList.add('open');document.body.style.overflow='hidden';renderStacks();};
+function closeStacks(){document.getElementById('stacksOverlay').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('stacksOverlay').onclick=e=>{if(e.target.id==='stacksOverlay')closeStacks();};
+document.getElementById('newStackName').addEventListener('keydown',e=>{if(e.key==='Enter')stackCreate();});
+
 /* ---------- command palette (⌘K / Ctrl-K) focuses search ---------- */
 document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();const q=document.getElementById('q');q.focus();q.select();window.scrollTo({top:0,behavior:'smooth'});}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLabs();closeInt();closeRes();closeCat();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLabs();closeInt();closeRes();closeCat();closeStacks();}});
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCompare();closeCalc();}});
 
