@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Compound Reference — Interactive</title>
+<meta name="theme-color" content="#0a0f1a">
+<link rel="manifest" href="./manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Compounds">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<script>if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -167,6 +174,38 @@ table.cmp ul{margin:0;padding-left:15px}
 #syrBox{margin:18px 0 4px}
 .cwarn{margin-top:14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:12px 14px;color:#ffb4b4;font-size:13px}
 .cnote{margin-top:14px;font-size:12px;color:var(--ink-mute);border-top:1px dashed var(--line);padding-top:10px}
+/* copy-link button (sits left of close) */
+.copybtn{right:62px!important}
+/* source links */
+.srclinks{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+.srclinks a{font-family:'Figtree';font-weight:600;font-size:12px;color:var(--blue-bright);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;transition:.15s}
+.srclinks a:hover{color:#fff;border-color:var(--blue);background:var(--panel)}
+/* icon buttons in header */
+.iconbtn{display:inline-flex;align-items:center;gap:6px;font-family:'Figtree';font-weight:600;font-size:13px;color:var(--ink-soft);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;white-space:nowrap}
+.iconbtn:hover{color:var(--ink);border-color:var(--blue)}
+.iconbtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+/* light theme */
+:root[data-theme=light]{--bg:#f5f8fd;--bg-2:#ffffff;--panel:#ffffff;--panel-2:#eef3fa;--ink:#0b1524;--ink-soft:#33475f;--ink-mute:#63748c;--line:#d3deec;--line-soft:#e6edf6}
+:root[data-theme=light] .deals-banner b,:root[data-theme=light] .cat-tag,:root[data-theme=light] .field .lab{color:#1668a8}
+/* resources modal */
+.resmodal{background:linear-gradient(180deg,var(--panel),var(--bg-2));border:1px solid var(--line);border-radius:20px;max-width:720px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:pop .18s ease}
+.resbody{padding:20px 24px 26px}
+.resgrp{margin-bottom:18px}
+.resgrp h3{font-family:'Figtree';font-weight:800;font-size:14px;color:var(--blue-bright);margin-bottom:9px}
+.reslink{display:block;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:7px;background:var(--panel-2);transition:.15s}
+.reslink:hover{border-color:var(--blue)}
+.reslink b{display:block;color:var(--ink);font-family:'Figtree';font-weight:700;font-size:14px}
+.reslink span{color:var(--ink-soft);font-size:12.5px}
+.resphone{color:var(--teal);font-weight:700}
+/* print */
+@media print{
+  header,.deals-banner,.cmpbar,.calcbtn,.iconbtn,.sortsel,.search,.filters,.note,.overlay{display:none!important}
+  body{background:#fff;color:#000}
+  .grid{display:block}
+  .cardx{break-inside:avoid;border:1px solid #ccc;box-shadow:none;margin-bottom:8px;color:#000}
+  .cardx h3{color:#000}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -180,6 +219,10 @@ table.cmp ul{margin:0;padding-left:15px}
         <input id="q" type="text" placeholder="Search a compound (e.g. tirzepatide, tren, BPC)…" autocomplete="off">
       </div>
       <button class="calcbtn" id="calcbtn" title="Reconstitution calculator"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M12 10h2M16 10h0M8 14h2M12 14h2M16 14h0M8 18h6"/></svg>Calculator</button>
+      <button class="iconbtn" id="labsbtn" title="Lab-value interpreter"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-4 8a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-4-8V3"/></svg>Labs</button>
+      <button class="iconbtn" id="resbtn" title="Safety & lab resources"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Resources</button>
+      <button class="iconbtn" id="printbtn" title="Print / Save PDF"><svg viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>Print</button>
+      <button class="iconbtn" id="themebtn" title="Toggle light/dark"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
       <select class="sortsel" id="sort" aria-label="Sort compounds">
         <option value="az">Sort: A–Z</option>
         <option value="safety">Sort: Safest first</option>
@@ -195,6 +238,7 @@ table.cmp ul{margin:0;padding-left:15px}
       <span class="chip rate" data-rate="y"><span class="dot y"></span>Yellow</span>
       <span class="chip rate" data-rate="o"><span class="dot o"></span>Orange</span>
       <span class="chip rate" data-rate="r"><span class="dot r"></span>Red</span>
+      <span class="chip" id="favChip" style="margin-left:auto">★ Favorites</span>
     </div>
   </div>
 </header>
@@ -208,6 +252,7 @@ table.cmp ul{margin:0;padding-left:15px}
 <div class="cmpbar" id="cmpbar">
   <span class="lbl" id="cmplbl">0 selected</span>
   <button class="go" id="cmpgo" disabled>Compare</button>
+  <button class="go" id="intgo" disabled style="background:transparent;border-color:var(--teal);color:var(--teal)">Interactions</button>
   <button class="clr" id="cmpclr">Clear</button>
 </div>
 
@@ -229,6 +274,59 @@ table.cmp ul{margin:0;padding-left:15px}
       <div id="calcOut"></div>
       <div id="syrBox"></div>
       <div class="cnote">Assumes a U-100 insulin syringe (100 units = 1 mL). Reconstituted-peptide math tool only — not dosing advice. Wrong dilution is the most common cause of accidental overdose, so double-check every number.</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="labsOverlay">
+  <div class="calcmodal">
+    <div class="cmphead"><h2>Lab-Value Interpreter</h2><button class="close" aria-label="Close" onclick="closeLabs()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="calcbody">
+      <div class="cin">
+        <div class="cfield"><label>Marker</label><select id="lMarker"></select></div>
+        <div class="cfield"><label>Your value</label><div class="crow"><input id="lVal" type="number" step="any" inputmode="decimal"><span id="lUnit" style="align-self:center;color:var(--ink-mute);font-size:13px;min-width:60px"></span></div></div>
+      </div>
+      <div id="labsOut"></div>
+      <div class="cnote">General adult reference bands — they vary by lab, age, and sex. Not a diagnosis; confirm with your lab's own ranges and your clinician.</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="intOverlay">
+  <div class="cmpmodal">
+    <div class="cmphead"><h2>Interaction &amp; Overlap Check</h2><button class="close" aria-label="Close" onclick="closeInt()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="cmpwrap" id="intBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="resOverlay">
+  <div class="resmodal">
+    <div class="cmphead"><h2>Safety &amp; Lab Resources</h2><button class="close" aria-label="Close" onclick="closeRes()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="resbody">
+      <div class="resgrp"><h3>Bloodwork &amp; hormone panels</h3>
+        <a class="reslink" target="_blank" rel="noopener" href="https://www.ondemand.labcorp.com/"><b>Labcorp OnDemand ↗</b><span>Consumer arm of a national CLIA/CAP lab; physician-ordered, no office visit.</span></a>
+        <a class="reslink" target="_blank" rel="noopener" href="https://www.questhealth.com/"><b>Quest Health ↗</b><span>Direct hormone/metabolic panels from Quest Diagnostics.</span></a>
+        <a class="reslink" target="_blank" rel="noopener" href="https://www.discountedlabs.com/"><b>DiscountedLabs ↗</b><span>Affordable testosterone/hormone monitoring via Quest (TRT-clinician founded).</span></a>
+        <a class="reslink" target="_blank" rel="noopener" href="https://marekhealth.com/"><b>Marek Health ↗</b><span>Panels bundled with physician interpretation.</span></a>
+      </div>
+      <div class="resgrp"><h3>Purity / product testing (they test, they don't sell)</h3>
+        <a class="reslink" target="_blank" rel="noopener" href="https://janoshik.com/"><b>Janoshik Analytical ↗</b><span>Widely-cited independent HPLC/MS purity &amp; identity testing; public COA verification.</span></a>
+        <a class="reslink" target="_blank" rel="noopener" href="https://www.mzbiolabs.com/"><b>MZ Biolabs ↗</b><span>US contract lab — pharmaceutical-grade peptide characterization.</span></a>
+      </div>
+      <div class="resgrp"><h3>Trusted medical references</h3>
+        <a class="reslink" target="_blank" rel="noopener" href="https://medlineplus.gov/"><b>MedlinePlus ↗</b><span>US National Library of Medicine — plain-language drug/condition/lab info.</span></a>
+        <a class="reslink" target="_blank" rel="noopener" href="https://www.mayoclinic.org/drugs-supplements"><b>Mayo Clinic ↗</b><span>Physician-reviewed drug &amp; supplement information.</span></a>
+        <a class="reslink" target="_blank" rel="noopener" href="https://www.ncbi.nlm.nih.gov/books/NBK547852/"><b>NIH LiverTox ↗</b><span>Drug/supplement-induced liver injury reference.</span></a>
+        <a class="reslink" target="_blank" rel="noopener" href="https://www.drugs.com/drug_interactions.html"><b>Drugs.com Interaction Checker ↗</b><span>Professional-sourced interaction tool.</span></a>
+      </div>
+      <div class="resgrp"><h3>Harm reduction</h3>
+        <a class="reslink" target="_blank" rel="noopener" href="https://harmreduction.org/"><b>National Harm Reduction Coalition ↗</b><span>Safer-use guides and resource directory.</span></a>
+        <a class="reslink" target="_blank" rel="noopener" href="https://dancesafe.org/"><b>DanceSafe ↗</b><span>Reagent test kits &amp; fentanyl test strips.</span></a>
+      </div>
+      <div class="resgrp"><h3>Emergency (US)</h3>
+        <a class="reslink" target="_blank" rel="noopener" href="https://www.poison.org/"><b>Poison Control — <span class="resphone">1-800-222-1222</span> ↗</b><span>Free, confidential, 24/7. For life-threatening emergencies call 911 first.</span></a>
+        <a class="reslink" target="_blank" rel="noopener" href="https://988lifeline.org/"><b>988 Suicide &amp; Crisis Lifeline ↗</b><span>Call or text 988.</span></a>
+      </div>
     </div>
   </div>
 </div>
@@ -1315,6 +1413,59 @@ const DOSING={
 };
 D.forEach(d=>{ if(DOSING[d.n])d.dosing=DOSING[d.n]; });
 
+/* ---------- reference data: half-life / storage / trial status (reputable sources) ---------- */
+const REF={
+'Semaglutide':{hl:'~1 week (149–164 h)',storage:'Ready-to-use; refrigerate 2–8°C unopened; in-use pen up to 56 days ≤30°C.',status:'FDA-approved (Ozempic / Wegovy).'},
+'Tirzepatide':{hl:'~5 days (~117 h)',storage:'Ready-to-use; refrigerate 2–8°C; punctured vial 28 days.',status:'FDA-approved (Mounjaro / Zepbound).'},
+'Retatrutide':{hl:'~6 days',storage:'Investigational; trial protocol 2–8°C.',status:'Investigational — Phase 3 (not approved).'},
+'Cagrilintide':{hl:'~7–8 days (~180 h)',storage:'Investigational; 2–8°C.',status:'Investigational (CagriSema Phase 3).'},
+'Tesamorelin':{hl:'~26–38 min (steady state)',storage:'Lyophilized, room temp, protect from light; use immediately once reconstituted.',status:'FDA-approved (2010, HIV lipodystrophy).'},
+'BPC-157':{hl:'No validated human PK (short in animals)',storage:'No label; vendors suggest lyophilized frozen/fridge, reconstituted refrigerated, use within days.',status:'NOT FDA-approved; not for human use (FDA compounding-restricted).'},
+'TB-500':{hl:'No published human PK',storage:'No label; lyophilized cold, reconstituted refrigerated short-term.',status:'NOT FDA-approved; not for human use (compounding-restricted).'},
+'Ipamorelin':{hl:'~2 h',storage:'No label; lyophilized cold, reconstituted refrigerated.',status:'Not approved; development discontinued.'},
+'CJC-1295 (± DAC)':{hl:'With DAC ~6–8 days; no-DAC ~30 min–2 h',storage:'Lyophilized frozen; reconstituted 2–8°C ~28 days.',status:'Investigational; not approved.'},
+'Sermorelin':{hl:'~11–12 min',storage:'Refrigerate lyophilized & reconstituted; reconstituted ~30 days; do not freeze solution.',status:'Formerly approved (Geref, discontinued 2008); compounded only.'},
+'MOTS-c':{hl:'Very short (minutes)',storage:'No standard; frozen lyophilized, refrigerated once reconstituted.',status:'Investigational; no completed human efficacy trials.'},
+'Epithalon':{hl:'Very short (minutes)',storage:'No standard; frozen lyophilized, refrigerated once reconstituted.',status:'Investigational; limited non-Western data.'},
+'PT-141 (Bremelanotide)':{hl:'~2.7 h',storage:'Ready-to-use autoinjector; ≤25°C, do not freeze, protect from light.',status:'FDA-approved (2019, HSDD).'},
+'Melanotan 2':{hl:'~33 min',storage:'No standard; lyophilized cold, protect from light; solutions unstable.',status:'NOT approved anywhere; unlicensed.'},
+'NAD+ / NMN':{hl:'Rapid intracellular turnover',storage:'Reagent handling; −20°C desiccated; aqueous unstable, prepare fresh.',status:'Not an approved drug; supplement / investigational.'},
+'GHK-Cu':{hl:'~0.5–2 h (est.)',storage:'Lyophilized cold; reconstituted refrigerated.',status:'Cosmetic/topical use; injectable not approved.'},
+'Testosterone':{hl:'Ester-dependent: propionate ~0.8 d, cypionate/enanthate ~8 d',storage:'Oil solution, room temp, protect from light.',status:'FDA-approved (TRT); Schedule III.'},
+'Metformin':{hl:'~6.2 h',storage:'Tablets, room temp.',status:'FDA-approved (T2 diabetes).'}
+};
+D.forEach(d=>{ const r=REF[d.n]; if(r){d.halfLife=r.hl;d.storage=r.storage;d.trialStatus=r.status;} });
+
+/* ---------- WADA status (concise, category-based with overrides) ---------- */
+const WADA_OVERRIDE={'Semaglutide':'Not prohibited','Tirzepatide':'Not prohibited','Retatrutide':'Not currently listed (verify)','Cagrilintide':'Not currently listed (verify)','Mazdutide':'Not currently listed (verify)','Survodutide':'Not currently listed (verify)','Metformin':'Not prohibited','Tesamorelin':'Prohibited (S2 – growth factors)','Clenbuterol':'Prohibited (S1.2 / S3 beta-2 agonist)','PT-141 (Bremelanotide)':'Not specifically listed','Melanotan 2':'Not specifically listed','Cabergoline':'Not prohibited','Metformin ':'Not prohibited'};
+function wadaFor(d){
+  if(WADA_OVERRIDE[d.n])return WADA_OVERRIDE[d.n];
+  if(d.cat==='steroid')return 'Prohibited at all times (S1 – anabolic agents)';
+  if(d.cat==='sarm')return 'Prohibited at all times (S1.2 – SARMs)';
+  if(d.cat==='gh')return 'Prohibited at all times (S2 – peptide hormones / GH)';
+  if(d.cat==='healing')return 'Commonly prohibited (S0 non-approved / S2) — verify';
+  if(d.cat==='support'){ if(/Aromasin|Letrozole|Arimidex|Anastrozole|Tamoxifen|Clomid|Enclomiphene/.test(d.n))return 'Prohibited (S4 – hormone/metabolic modulators)'; if(/HCG|HMG|Gonadorelin/.test(d.n))return 'Prohibited in males (S2)'; if(/Furosemide|Spironolactone|Diuretic/.test(d.n))return 'Prohibited (S5 – diuretics/masking agents)'; return 'Check status (Global DRO)'; }
+  return 'Check status (Global DRO)';
+}
+D.forEach(d=>{ d.wada=wadaFor(d); });
+
+/* ---------- auto-generated source links (search URLs never 404) ---------- */
+function searchTerm(d){ return d.n.split('(')[0].split('/')[0].trim(); }
+function sourceLinks(d){
+  const q=encodeURIComponent(searchTerm(d));
+  const L=[
+    ['PubChem','https://pubchem.ncbi.nlm.nih.gov/#query='+q],
+    ['PubMed','https://pubmed.ncbi.nlm.nih.gov/?term='+q],
+    ['ClinicalTrials','https://clinicaltrials.gov/search?intr='+q],
+    ['Wikipedia','https://en.wikipedia.org/w/index.php?search='+q],
+    ['DailyMed (FDA label)','https://dailymed.nlm.nih.gov/dailymed/search.cfm?query='+q],
+    ['Drugs.com','https://www.drugs.com/search.php?searchterm='+q],
+    ['WADA list','https://www.wada-ama.org/en/prohibited-list'],
+    ['Global DRO','https://www.globaldro.com/US/search']
+  ];
+  return L;
+}
+
 /* ---------- render ---------- */
 const grid=document.getElementById('grid');
 const catBar=document.getElementById('cats');
@@ -1330,10 +1481,12 @@ catBar.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{curCat=ch.dataset.c
 rateBar.querySelectorAll('.chip').forEach((ch,i)=>{if(i===0)ch.classList.add('active');ch.onclick=()=>{curRate=ch.dataset.rate;rateBar.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));ch.classList.add('active');render();};});
 qEl.oninput=()=>{curQ=qEl.value.trim().toLowerCase();render();};
 
+function norm(s){return (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
 function matches(d){
   if(curCat!=='all'&&d.cat!==curCat)return false;
   if(curRate!=='all'&&d.r!==curRate)return false;
-  if(curQ){const hay=(d.n+' '+(d.aka||'')).toLowerCase();if(!hay.includes(curQ))return false;}
+  if(favOnly&&!favs.has(d.n))return false;
+  if(curQ){const hay=norm(d.n+' '+(d.aka||''));if(!hay.includes(norm(curQ)))return false;}
   return true;
 }
 function catName(id){return (CATS.find(c=>c.id===id)||{}).name||id;}
@@ -1376,6 +1529,7 @@ function updateCmpBar(){
   const n=selected.size;
   document.getElementById('cmplbl').textContent=n+' selected'+(n>=3?' (max)':'');
   document.getElementById('cmpgo').disabled=n<2;
+  document.getElementById('intgo').disabled=n<2;
   document.getElementById('cmpbar').classList.toggle('show',n>0);
 }
 
@@ -1389,6 +1543,8 @@ function openModal(d){
   modal.innerHTML=`
     <div class="mhead ${d.r}">
       <span class="rail"></span>
+      <button class="close favbtn" aria-label="Save to favorites" title="Save" onclick="toggleFav('${(d.n||'').replace(/'/g,"&#39;")}',this)">${favs.has(d.n)?'★':'☆'}</button>
+      <button class="close copybtn" aria-label="Copy link to this compound" title="Copy link" onclick="copyLink(this)"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.07 0l2-2a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-2 2a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg></button>
       <button class="close" aria-label="Close" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       <h2>${d.n}</h2>
       <div class="aka">${d.aka||''}</div>
@@ -1411,16 +1567,26 @@ function openModal(d){
       <div class="field"><div class="lab">Who should avoid it</div><div class="val">${d.avoid||'—'}</div></div>
       ${d.monitoring?`<div class="field"><div class="lab">Monitoring — labs a doctor checks</div><div class="val">${d.monitoring}</div></div>`:''}
       <div class="field"><div class="lab">Legal / status</div><div class="val">${d.legal||'—'}</div></div>
+      ${d.halfLife?`<div class="field"><div class="lab">Half-life</div><div class="val">${d.halfLife}</div></div>`:''}
+      ${d.storage?`<div class="field"><div class="lab">Storage &amp; handling</div><div class="val">${d.storage}</div></div>`:''}
+      ${d.trialStatus?`<div class="field"><div class="lab">Approval / trial status</div><div class="val">${d.trialStatus}</div></div>`:''}
+      ${d.wada?`<div class="field"><div class="lab">Anti-doping (WADA)</div><div class="val">${d.wada}</div></div>`:''}
       ${d.priceDetail?`<div class="field"><div class="lab">Pricing (from catalog)</div><div class="val">${d.priceDetail}</div></div>`:''}
       ${d.alt?`<div class="field"><div class="lab">Alternatives / better-evidence options</div><div class="val">${d.alt}</div></div>`:''}
       ${d.deals?`<div class="field"><div class="lab">Deals &amp; discount codes</div><div class="val">${d.deals}</div></div>`:''}
       ${ratingsRow(d.ratings)}
+      <div class="field"><div class="lab">Sources &amp; further reading</div><div class="val srclinks">${sourceLinks(d).map(l=>'<a href="'+l[1]+'" target="_blank" rel="noopener">'+l[0]+' ↗</a>').join('')}</div></div>
       <div class="disc">Educational risk/evidence summary — not medical advice and not a dosing guide. Confirm anything with a licensed physician who can order and interpret your labs.</div>
     </div>`;
   overlay.classList.add('open');
   document.body.style.overflow='hidden';
+  try{history.replaceState(null,'','#c='+encodeURIComponent(slug(d.n)));}catch(e){}
 }
-function closeModal(){overlay.classList.remove('open');document.body.style.overflow='';}
+function closeModal(){overlay.classList.remove('open');document.body.style.overflow='';try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}}
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+function openFromHash(){const m=location.hash.match(/^#c=(.+)$/);if(!m)return;const s=decodeURIComponent(m[1]);const d=D.find(x=>slug(x.n)===s);if(d)openModal(d);}
+function copyLink(btn){try{navigator.clipboard.writeText(location.href);const t=btn.getAttribute('title');btn.setAttribute('title','Copied!');setTimeout(()=>btn.setAttribute('title',t),1500);}catch(e){}}
+addEventListener('hashchange',openFromHash);
 overlay.onclick=e=>{if(e.target===overlay)closeModal();};
 
 /* ---------- sort ---------- */
@@ -1517,9 +1683,136 @@ function calc(){
   syr.innerHTML=drawSyringe(units,cap);
 }
 
+/* ---------- favorites ---------- */
+let favOnly=false; let favs=new Set();
+try{favs=new Set(JSON.parse(localStorage.getItem('favs')||'[]'));}catch(e){}
+function saveFavs(){try{localStorage.setItem('favs',JSON.stringify([...favs]));}catch(e){}}
+function toggleFav(name,btn){name=(name||'').replace(/&#39;/g,"'");if(favs.has(name))favs.delete(name);else favs.add(name);saveFavs();if(btn)btn.textContent=favs.has(name)?'★':'☆';render();}
+document.getElementById('favChip').onclick=function(){favOnly=!favOnly;this.classList.toggle('active',favOnly);render();};
+
+/* ---------- theme ---------- */
+(function(){try{const s=localStorage.getItem('theme');if(s==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();
+document.getElementById('themebtn').onclick=function(){const light=document.documentElement.getAttribute('data-theme')==='light';if(light){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('theme','dark');}catch(e){}}else{document.documentElement.setAttribute('data-theme','light');try{localStorage.setItem('theme','light');}catch(e){}}};
+
+/* ---------- print ---------- */
+document.getElementById('printbtn').onclick=()=>window.print();
+
+/* ---------- resources ---------- */
+document.getElementById('resbtn').onclick=()=>{document.getElementById('resOverlay').classList.add('open');document.body.style.overflow='hidden';};
+function closeRes(){document.getElementById('resOverlay').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('resOverlay').onclick=e=>{if(e.target.id==='resOverlay')closeRes();};
+
+/* ---------- lab-value interpreter ---------- */
+const MARKERS=[
+ {n:'ALT (liver)',u:'U/L',lo:7,hi:56,rel:['Anadrol (Oxymetholone)','Superdrol (Methasterone)','Winstrol (Stanozolol)','Dianabol (Methandrostenolone)','Accutane (Isotretinoin)'],hiMsg:'Elevated — liver stress; common with oral 17aa steroids and some SARMs.',loMsg:'Below range — usually not concerning.'},
+ {n:'AST (liver)',u:'U/L',lo:10,hi:40,rel:['Anadrol (Oxymetholone)','Superdrol (Methasterone)'],hiMsg:'Elevated — liver or muscle stress.',loMsg:'Below range — usually fine.'},
+ {n:'Total testosterone (male)',u:'ng/dL',lo:300,hi:1000,rel:['Testosterone','Nandrolone (Deca / NPP)','Ostarine (MK-2866)','RAD-140 (Testolone)'],hiMsg:'Above range — supraphysiologic (exogenous androgens).',loMsg:'Low — suppression or hypogonadism; discuss restart options.'},
+ {n:'Estradiol / E2 (male)',u:'pg/mL',lo:10,hi:40,rel:['Testosterone','Dianabol (Methandrostenolone)','Anastrozole (Arimidex)','Aromasin / Letrozole'],hiMsg:'High — aromatization (gyno/water risk).',loMsg:'Low — over-suppressed estrogen (joints, mood, libido, lipids).'},
+ {n:'IGF-1',u:'ng/mL',lo:100,hi:300,rel:['HGH (Somatropin)','IGF-1 LR3','MK-677 (Ibutamoren)','Tesamorelin'],hiMsg:'High — strong GH/IGF signaling.',loMsg:'Low — low GH output.'},
+ {n:'HbA1c',u:'%',lo:4,hi:5.7,rel:['Semaglutide','Tirzepatide','Metformin','MK-677 (Ibutamoren)','HGH (Somatropin)'],hiMsg:'5.7–6.4% = prediabetes, ≥6.5% = diabetes range. GH/MK-677 raise it; GLP-1s/metformin lower it.',loMsg:'Low — usually fine.'},
+ {n:'Fasting glucose',u:'mg/dL',lo:70,hi:99,rel:['Semaglutide','Tirzepatide','Metformin','IGF-1 LR3','MK-677 (Ibutamoren)'],hiMsg:'100–125 = prediabetes, ≥126 = diabetes range.',loMsg:'<70 = hypoglycemia — can be dangerous (esp. IGF-1/insulin).'},
+ {n:'Hematocrit (male)',u:'%',lo:41,hi:50,rel:['Testosterone','Boldenone (EQ)','Anadrol (Oxymetholone)','HGH (Somatropin)'],hiMsg:'High — thick blood; clot/stroke risk. Androgens & EQ raise it.',loMsg:'Low — anemia; investigate.'},
+ {n:'HDL cholesterol',u:'mg/dL',lo:40,hi:200,rel:['Superdrol (Methasterone)','Winstrol (Stanozolol)','Anadrol (Oxymetholone)'],hiMsg:'Higher HDL is generally protective.',loMsg:'Low — oral steroids crush HDL; cardiovascular risk.'},
+ {n:'LDL cholesterol',u:'mg/dL',lo:0,hi:100,rel:['Superdrol (Methasterone)','Trenbolone','Statins (Atorva / Rosuva)'],hiMsg:'High — cardiovascular risk; orals/tren worsen it.',loMsg:'Low — generally good.'},
+ {n:'Prolactin (male)',u:'ng/mL',lo:2,hi:18,rel:['Nandrolone (Deca / NPP)','Trenbolone','Cabergoline'],hiMsg:'High — 19-nors raise it; libido/mood effects (cabergoline lowers).',loMsg:'Low — usually fine.'},
+ {n:'TSH (thyroid)',u:'mIU/L',lo:0.4,hi:4,rel:['T3 / T4 (Thyroid)'],hiMsg:'High — underactive thyroid.',loMsg:'Low — overactive/suppressed (exogenous T3/T4).'},
+ {n:'PSA (prostate)',u:'ng/mL',lo:0,hi:4,rel:['Testosterone'],hiMsg:'Elevated — evaluate prostate before/with androgens.',loMsg:'Within range.'}
+];
+const lMarker=document.getElementById('lMarker');
+MARKERS.forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent=m.n;lMarker.appendChild(o);});
+document.getElementById('labsbtn').onclick=()=>{document.getElementById('labsOverlay').classList.add('open');document.body.style.overflow='hidden';labsCalc();};
+function closeLabs(){document.getElementById('labsOverlay').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('labsOverlay').onclick=e=>{if(e.target.id==='labsOverlay')closeLabs();};
+lMarker.onchange=labsCalc;document.getElementById('lVal').oninput=labsCalc;
+function openByName(name){const d=D.find(x=>x.n===name);if(d){closeLabs();openModal(d);}}
+function openByNameE(ev,name){ev.preventDefault();openByName(name);return false;}
+function labsCalc(){
+  const m=MARKERS[+lMarker.value||0];document.getElementById('lUnit').textContent=m.u;
+  const v=parseFloat(document.getElementById('lVal').value);const out=document.getElementById('labsOut');
+  const relBox='<div class="field"><div class="lab">Compounds that move this marker</div><div class="val srclinks">'+m.rel.map(nm=>'<a href="#" onclick="return openByNameE(event,\''+nm.replace(/'/g,"\\'")+'\')">'+nm+'</a>').join('')+'</div></div>';
+  if(!(v>=0)){out.innerHTML='<div class="cnote" style="border:none;padding-top:4px">Enter a value to interpret. General range: '+m.lo+'–'+m.hi+' '+m.u+'.</div>'+relBox;return;}
+  let band,col,msg;
+  if(v<m.lo){band='LOW';col='#eab308';msg=m.loMsg;}
+  else if(v>m.hi){band='HIGH';col='#ef4444';msg=m.hiMsg;}
+  else{band='IN RANGE';col='#22c55e';msg='Within the general reference range.';}
+  const min=Math.min(m.lo*0.6,v),max=Math.max(m.hi*1.4,v);
+  const pos=Math.max(0,Math.min(100,((v-min)/(max-min))*100));
+  const nlo=((m.lo-min)/(max-min))*100,nhi=((m.hi-min)/(max-min))*100;
+  const bar='<div style="position:relative;height:12px;border-radius:6px;background:var(--panel-2);border:1px solid var(--line);margin:14px 0 6px"><div style="position:absolute;left:'+nlo+'%;width:'+(nhi-nlo)+'%;top:0;bottom:0;background:rgba(34,197,94,.3);border-radius:6px"></div><div style="position:absolute;left:'+pos+'%;top:-4px;width:2px;height:20px;background:'+col+'"></div></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mute)"><span>'+fmt(min)+'</span><span>normal '+m.lo+'–'+m.hi+'</span><span>'+fmt(max)+'</span></div>';
+  out.innerHTML='<div class="cbig" style="margin-top:14px"><span>'+m.n+'</span><b style="color:'+col+'">'+band+'</b><small>'+v+' '+m.u+'</small></div>'+bar+'<div class="field"><div class="val">'+msg+'</div></div>'+relBox;
+}
+
+/* ---------- interaction checker ---------- */
+function tagsFor(d){
+  const t=[],n=d.n;
+  if(d.cat==='steroid'){t.push('suppresses-testosterone','raises-hematocrit','raises-bp');
+    if(/Anadrol|Superdrol|Halotestin|Dianabol|Winstrol|Anavar|Turinabol/.test(n))t.push('hepatotoxic');
+    if(/Deca|NPP|Nandrolone|Trenbolone|Trestolone/.test(n))t.push('raises-prolactin');
+    if(/Testosterone|Dianabol|Anadrol|Trestolone|Sustanon/.test(n))t.push('raises-estrogen');}
+  if(d.cat==='sarm'){t.push('suppresses-testosterone');if(/RAD-140|YK-11|Ostarine/.test(n))t.push('hepatotoxic');}
+  if(d.cat==='gh'){if(/HGH|MK-677/.test(n))t.push('raises-glucose');if(/IGF-1/.test(n))t.push('lowers-glucose');if(/GHRP|Hexarelin/.test(n))t.push('raises-prolactin');}
+  if(d.cat==='glp1'){if(/Semaglutide|Tirzepatide|Retatrutide|Cagrilintide|Mazdutide|Survodutide/.test(n))t.push('lowers-glucose','pancreatitis-risk');if(/Clenbuterol/.test(n))t.push('cardiac-stimulant','raises-bp');}
+  if(d.cat==='cognitive'){if(/Methylene Blue/.test(n))t.push('serotonergic');if(/Melanotan/.test(n))t.push('melanoma-risk','raises-bp');if(/PT-141/.test(n))t.push('raises-bp');}
+  if(d.cat==='support'){
+    if(/Aromasin|Letrozole|Arimidex|Anastrozole/.test(n))t.push('lowers-estrogen');
+    if(/Furosemide|Spironolactone/.test(n))t.push('lowers-bp');
+    if(/Beta-blockers|Metoprolol|Nebivolol|ARBs|Telmisartan|Losartan/.test(n))t.push('lowers-bp');
+    if(/PDE5|Tadalafil|Sildenafil/.test(n))t.push('lowers-bp','nitrate-interaction');
+    if(/T3|T4|Thyroid/.test(n))t.push('cardiac-stimulant');
+    if(/Accutane/.test(n))t.push('hepatotoxic');
+    if(/Metformin/.test(n))t.push('lowers-glucose');
+  }
+  return t;
+}
+D.forEach(d=>d.itags=tagsFor(d));
+const TAGRULES=[
+ {a:'hepatotoxic',b:'hepatotoxic',sev:'Major',txt:'Two liver-stressing compounds — additive hepatotoxicity. Monitor ALT/AST; avoid stacking oral 17aa steroids.'},
+ {a:'raises-hematocrit',b:'raises-hematocrit',sev:'Major',txt:'Compounding red-cell / hematocrit rise — clot and stroke risk. Monitor hematocrit; hydrate.'},
+ {a:'nitrate-interaction',b:'lowers-bp',sev:'Major',txt:'PDE5 inhibitor plus other BP-lowering agents can drop blood pressure dangerously.'},
+ {a:'lowers-glucose',b:'lowers-glucose',sev:'Major',txt:'Additive blood-sugar lowering — hypoglycemia risk. Monitor glucose.'},
+ {a:'serotonergic',b:'serotonergic',sev:'Major',txt:'Serotonin-syndrome risk when combined.'},
+ {a:'cardiac-stimulant',b:'cardiac-stimulant',sev:'Major',txt:'Additive cardiac / stimulant load — arrhythmia risk.'},
+ {a:'raises-bp',b:'raises-bp',sev:'Moderate',txt:'Both raise blood pressure — additive hypertension. Monitor BP.'},
+ {a:'lowers-bp',b:'lowers-bp',sev:'Moderate',txt:'Both lower blood pressure — hypotension / fainting risk.'},
+ {a:'raises-glucose',b:'lowers-glucose',sev:'Moderate',txt:'One raises and one lowers glucose — unpredictable blood sugar; monitor.'},
+ {a:'raises-prolactin',b:'raises-prolactin',sev:'Moderate',txt:'Additive prolactin rise — libido / mood effects; consider a prolactin check.'},
+ {a:'raises-estrogen',b:'raises-estrogen',sev:'Moderate',txt:'Additive estrogen — gyno / water risk.'},
+ {a:'lowers-estrogen',b:'lowers-estrogen',sev:'Moderate',txt:'Estrogen may crash — joints, lipids, mood, libido.'},
+ {a:'suppresses-testosterone',b:'suppresses-testosterone',sev:'Moderate',txt:'Deeper combined testosterone suppression — harder recovery.'},
+ {a:'cardiac-stimulant',b:'raises-bp',sev:'Moderate',txt:'Stimulant plus BP rise — cardiovascular strain.'},
+ {a:'raises-glucose',b:'raises-glucose',sev:'Moderate',txt:'Both can raise blood sugar / insulin resistance — monitor A1C.'}
+];
+function checkInteractions(items){
+  const out=[];
+  for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++){
+    const A=items[i],B=items[j];
+    TAGRULES.forEach(r=>{ if((A.itags.indexOf(r.a)>-1&&B.itags.indexOf(r.b)>-1)||(A.itags.indexOf(r.b)>-1&&B.itags.indexOf(r.a)>-1)) out.push({pair:A.n+' + '+B.n,sev:r.sev,txt:r.txt}); });
+  }
+  return out;
+}
+function openInt(){
+  const items=D.filter(x=>selected.has(x.n)); if(items.length<2)return;
+  const f=checkInteractions(items); const rank={Major:0,Moderate:1}; f.sort((a,b)=>rank[a.sev]-rank[b.sev]);
+  const chip={Major:'b-r',Moderate:'b-o'};
+  let h='<div style="padding:6px 12px 18px"><p style="color:var(--ink-soft);font-size:13.5px;margin:6px 0 14px">Checking: '+items.map(x=>x.n).join(', ')+'</p>';
+  if(!f.length){h+='<div class="cwarn" style="color:var(--ink-soft);background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.3)">No overlapping-risk flags found for this combination in our rule set. Absence of a flag is not proof of safety.</div>';}
+  else{f.forEach(x=>{h+='<div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:9px;background:var(--panel-2)"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><b style="font-family:Figtree;color:var(--ink)">'+x.pair+'</b><span class="badge '+chip[x.sev]+'">'+x.sev+'</span></div><div style="color:var(--ink-soft);font-size:13.5px;margin-top:6px">'+x.txt+'</div></div>';});}
+  h+='<div class="cnote">Rule-based overlap checker (class effects: liver, blood pressure, blood sugar, hormones). Not a comprehensive drug-interaction database — verify with Drugs.com and a clinician.</div></div>';
+  document.getElementById('intBody').innerHTML=h;
+  document.getElementById('intOverlay').classList.add('open');document.body.style.overflow='hidden';
+}
+function closeInt(){document.getElementById('intOverlay').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('intOverlay').onclick=e=>{if(e.target.id==='intOverlay')closeInt();};
+document.getElementById('intgo').onclick=openInt;
+
+/* ---------- command palette (⌘K / Ctrl-K) focuses search ---------- */
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();const q=document.getElementById('q');q.focus();q.select();window.scrollTo({top:0,behavior:'smooth'});}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLabs();closeInt();closeRes();}});
+
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCompare();closeCalc();}});
 
 render();
+openFromHash();
 </script>
 </body>
 </html>
