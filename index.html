@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compound Reference — Interactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0f1a;--bg-2:#0e1626;--panel:#111c30;--panel-2:#152238;
+  --ink:#eaf1fb;--ink-soft:#aebdd4;--ink-mute:#7488a6;
+  --line:#22344f;--line-soft:#1a293f;
+  --blue:#2f6df6;--blue-bright:#5b9bff;--teal:#22d3ee;
+  --green:#22c55e;--yellow:#eab308;--orange:#f97316;--red:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,h5{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;margin:0;line-height:1.15}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+/* header */
+header{position:sticky;top:0;z-index:40;background:rgba(10,15,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:16px;padding:16px 0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;font-family:'Figtree';font-weight:800;font-size:19px;letter-spacing:-.01em}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue),var(--teal));display:grid;place-items:center}
+.brand .logo svg{width:19px;height:19px;stroke:#04101f;fill:none;stroke-width:2.2}
+.search{flex:1;min-width:220px;position:relative}
+.search input{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:15px;
+  padding:11px 14px 11px 40px;border-radius:12px;font-family:inherit;outline:none;transition:.15s}
+.search input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,109,246,.18)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;stroke:var(--ink-mute);fill:none;stroke-width:2}
+.count{font-size:13px;color:var(--ink-mute);white-space:nowrap;font-family:'Figtree';font-weight:600}
+
+/* filters */
+.filters{display:flex;gap:8px;flex-wrap:wrap;padding:0 0 16px}
+.chip{font-family:'Figtree';font-weight:600;font-size:13px;color:var(--ink-soft);border:1px solid var(--line);
+  background:var(--panel);padding:8px 14px;border-radius:999px;cursor:pointer;transition:.15s;user-select:none}
+.chip:hover{color:#fff;border-color:var(--blue)}
+.chip.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip.rate{display:inline-flex;align-items:center;gap:7px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.g{background:var(--green)}.dot.y{background:var(--yellow)}.dot.o{background:var(--orange)}.dot.r{background:var(--red)}
+
+/* hero note */
+.note{margin:6px 0 22px;background:linear-gradient(90deg,rgba(239,68,68,.10),rgba(249,115,22,.05));
+  border:1px solid rgba(239,68,68,.28);border-radius:14px;padding:14px 18px;font-size:13.5px;color:var(--ink-soft)}
+.note b{color:#ffb4b4}
+
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;padding-bottom:70px}
+.cardx{background:linear-gradient(180deg,var(--panel),var(--bg-2));border:1px solid var(--line);border-radius:15px;
+  padding:16px 16px 14px;cursor:pointer;transition:.16s;position:relative;overflow:hidden}
+.cardx:hover{transform:translateY(-2px);border-color:var(--blue);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.cardx:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+.cardx.g:before{background:var(--green)}.cardx.y:before{background:var(--yellow)}.cardx.o:before{background:var(--orange)}.cardx.r:before{background:var(--red)}
+.cardx h3{font-size:17px;font-weight:800;letter-spacing:-.01em;padding-right:20px}
+.cardx .cls{color:var(--ink-mute);font-size:12px;margin-top:4px;min-height:16px}
+.cardx .foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.cat-tag{font-family:'Figtree';font-weight:600;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--blue-bright)}
+.price-tag{font-family:'Figtree';font-weight:700;font-size:13px;color:var(--ink)}
+.empty{grid-column:1/-1;text-align:center;color:var(--ink-mute);padding:60px 0;font-family:'Figtree'}
+
+/* badge */
+.badge{display:inline-flex;align-items:center;gap:5px;font-family:'Figtree';font-weight:600;font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid;white-space:nowrap}
+.b-g{color:#7ff0a5;background:rgba(34,197,94,.10);border-color:rgba(34,197,94,.35)}
+.b-y{color:#f5d97a;background:rgba(234,179,8,.10);border-color:rgba(234,179,8,.35)}
+.b-o{color:#fca971;background:rgba(249,115,22,.10);border-color:rgba(249,115,22,.35)}
+.b-r{color:#ff9a9a;background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.38)}
+
+/* modal */
+.overlay{position:fixed;inset:0;z-index:60;background:rgba(4,8,16,.72);backdrop-filter:blur(5px);
+  display:none;align-items:flex-start;justify-content:center;padding:34px 18px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:linear-gradient(180deg,var(--panel),var(--bg-2));border:1px solid var(--line);border-radius:20px;
+  max-width:760px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:pop .18s ease}
+@keyframes pop{from{transform:translateY(12px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.mhead{padding:24px 26px 18px;border-bottom:1px solid var(--line);position:relative}
+.mhead .rail{position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:20px 0 0 0}
+.mhead.g .rail{background:var(--green)}.mhead.y .rail{background:var(--yellow)}.mhead.o .rail{background:var(--orange)}.mhead.r .rail{background:var(--red)}
+.mhead h2{font-size:27px;font-weight:900;letter-spacing:-.02em;padding-right:40px}
+.mhead .aka{color:var(--ink-mute);font-size:13.5px;margin-top:5px}
+.mhead .badges{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.close{position:absolute;top:20px;right:20px;width:34px;height:34px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--ink-soft);cursor:pointer;display:grid;place-items:center;transition:.15s}
+.close:hover{color:#fff;border-color:var(--red)}
+.close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2}
+.mbody{padding:20px 26px 26px}
+.field{padding:12px 0;border-bottom:1px solid var(--line-soft)}
+.field:last-child{border-bottom:none}
+.field .lab{font-family:'Figtree';font-weight:700;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--blue-bright);margin-bottom:3px}
+.field .val{font-size:14.5px;color:var(--ink-soft);line-height:1.6}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.pc .box{border:1px solid var(--line-soft);border-radius:12px;padding:12px 14px}
+.pc .pro{background:rgba(34,197,94,.05);border-color:rgba(34,197,94,.22)}
+.pc .con{background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.22)}
+.pc h5{font-family:'Figtree';font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.pc .pro h5{color:#7ff0a5}.pc .con h5{color:#ff9a9a}
+.pc ul{margin:0;padding-left:16px;font-size:13.5px;color:var(--ink-soft)}.pc li{margin:3px 0}
+.ratings{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.rchip{font-size:12px;color:var(--ink-soft);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-family:'Figtree';font-weight:500}
+.rchip b{color:var(--ink);font-weight:800;margin-left:4px}
+.disc{margin-top:16px;font-size:12.5px;color:var(--ink-mute);border-top:1px dashed var(--line);padding-top:12px}
+
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--ink-mute);font-size:13px;text-align:center}
+
+@media(max-width:560px){.pc{grid-template-columns:1fr}.mhead h2{font-size:23px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="hbar">
+      <div class="brand"><span class="logo"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg></span>Compound Reference</div>
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" type="text" placeholder="Search a compound (e.g. tirzepatide, tren, BPC)…" autocomplete="off">
+      </div>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="filters" id="cats"></div>
+    <div class="filters" id="rates" style="padding-top:0">
+      <span class="chip rate" data-rate="all">All ratings</span>
+      <span class="chip rate" data-rate="g"><span class="dot g"></span>Green</span>
+      <span class="chip rate" data-rate="y"><span class="dot y"></span>Yellow</span>
+      <span class="chip rate" data-rate="o"><span class="dot o"></span>Orange</span>
+      <span class="chip rate" data-rate="r"><span class="dot r"></span>Red</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="note"><b>Reference only — not medical or dosing advice.</b> Ratings reflect evidence quality and safety burden. Most items are not FDA-approved for the uses described; many are controlled substances; gray-market products are often mislabeled. Verify everything with a physician who can read your labs.</div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+</div>
+
+<footer><div class="wrap">Compound Reference · Interactive Edition · educational risk &amp; evidence guide</div></footer>
+
+<script>
+const RATE_LABEL={g:'Strong evidence / approved',y:'Some evidence · needs oversight',o:'Limited evidence · higher risk',r:'High-risk / experimental'};
+const RATE_BADGE={g:'b-g',y:'b-y',o:'b-o',r:'b-r'};
+const CATS=[
+  {id:'all',name:'All'},
+  {id:'glp1',name:'GLP-1 & Fat Loss'},
+  {id:'healing',name:'Healing Peptides'},
+  {id:'gh',name:'Growth Hormone'},
+  {id:'longevity',name:'Longevity / Mito'},
+  {id:'cognitive',name:'Cognitive / Sleep / Sexual'},
+  {id:'steroid',name:'Anabolic Steroids'},
+  {id:'sarm',name:'SARMs'},
+  {id:'support',name:'Support / Ancillary'}
+];
+
+const D=[
+/* ---------- GLP-1 / FAT LOSS ---------- */
+{n:'Semaglutide',aka:'Ozempic · Wegovy · Rybelsus · GLP-1 agonist',cat:'glp1',r:'g',grade:'A',price:'$56–152',legal:'FDA-approved · Rx-only',
+ what:'A long-acting GLP-1 hormone mimic approved for type-2 diabetes and chronic weight management.',
+ how:'Activates GLP-1 receptors: slows gastric emptying, boosts satiety, improves insulin secretion, cuts appetite.',
+ uses:'T2 diabetes; obesity/overweight; cardiovascular risk reduction (SELECT trial).',
+ evidence:'Grade A — large multi-year RCTs; ~15% average weight loss.',
+ sides:'Nausea, vomiting, constipation/diarrhea, reflux; rare pancreatitis & gallbladder disease; muscle loss if rapid without protein/training.',
+ avoid:'Personal/family history of medullary thyroid cancer or MEN-2; pancreatitis history; pregnancy.',
+ pros:['Best-documented fat loss + cardiometabolic benefit','Once-weekly, huge safety record','Improves A1C, BP, lipids'],
+ cons:['GI side effects early','Weight regain after stopping','Gray-market dose accuracy unverified'],
+ ratings:{ 'Fat loss':9,'Muscle':2,'Safety':7,'Evidence':10,'Value':7 }},
+
+{n:'Tirzepatide',aka:'Mounjaro · Zepbound · GIP + GLP-1 dual agonist',cat:'glp1',r:'g',grade:'A',price:'$64–320',legal:'FDA-approved · Rx-only',
+ what:'A dual incretin agonist hitting GIP and GLP-1 — currently the most effective approved weight-loss drug.',
+ how:'Combined GIP+GLP-1 activity amplifies satiety, insulin sensitivity, and appetite suppression beyond GLP-1 alone.',
+ uses:'T2 diabetes; obesity; obstructive sleep apnea (approved 2024).',
+ evidence:'Grade A — SURMOUNT RCTs; ~20%+ average weight loss.',
+ sides:'Same GI profile as semaglutide, sometimes stronger; rare pancreatitis/gallbladder; muscle loss with rapid drop.',
+ avoid:'MTC/MEN-2 history; pancreatitis history; pregnancy.',
+ pros:['Largest weight loss of any approved agent','Strong glucose & metabolic improvement','Once-weekly'],
+ cons:['GI effects; cost','Regain after stopping','Gray-market purity unverified'],
+ ratings:{ 'Fat loss':10,'Muscle':2,'Safety':7,'Evidence':10,'Value':7 }},
+
+{n:'Retatrutide',aka:'"Triple-G" · GIP+GLP-1+glucagon',cat:'glp1',r:'y',grade:'B',price:'$64–336',legal:'Investigational · not approved',
+ what:'A triple-receptor agonist in phase-3 trials; the glucagon arm adds an energy-expenditure effect on top of appetite suppression.',
+ how:'GIP+GLP-1 satiety/insulin effects plus glucagon-driven metabolic rate increase and hepatic fat mobilization.',
+ uses:'Investigational for obesity; fatty-liver signals.',
+ evidence:'Grade B — phase-2 ~24%; long-term safety unestablished.',
+ sides:'GI effects; dose-dependent heart-rate rise; possible glucose elevation via glucagon; long-term unknown.',
+ avoid:'Anyone wanting an established drug — it isn\'t one yet. MTC/MEN-2, pancreatitis, pregnancy.',
+ pros:['Potentially strongest fat loss ever trialed','Extra metabolic/liver signal'],
+ cons:['Not approved; no long-term safety','Heart-rate & glucose questions open','Vials entirely unregulated'],
+ ratings:{ 'Fat loss':10,'Safety':5,'Evidence':6,'Value':6 }},
+
+{n:'Cagrilintide',aka:'Long-acting amylin analog · "CagriSema"',cat:'glp1',r:'y',grade:'B',price:'$112',legal:'Investigational',
+ what:'A synthetic amylin (satiety hormone) analog; shines when combined with semaglutide.',
+ how:'Slows gastric emptying and increases fullness through amylin receptors — a different lever than GLP-1.',
+ uses:'Investigational weight loss, especially combined.',evidence:'Grade B — strong combo data; solo data thinner.',
+ sides:'GI (nausea) similar to GLP-1s; long-term unknown.',avoid:'Pregnancy; as with incretin class.',
+ ratings:{ 'Fat loss':8,'Safety':6,'Evidence':6 }},
+
+{n:'Mazdutide',aka:'GLP-1 + glucagon dual',cat:'glp1',r:'y',grade:'B',price:'$120',legal:'Investigational',
+ what:'A dual GLP-1/glucagon agonist in late-stage trials, mostly in Asia.',how:'Adds glucagon-driven energy expenditure to GLP-1 appetite effects.',
+ uses:'Investigational obesity/diabetes.',evidence:'Grade B — active late-stage trials.',sides:'GI; heart-rate; glucose effects possible.',avoid:'Pregnancy; incretin-class cautions.'},
+
+{n:'Survodutide',aka:'GLP-1 + glucagon dual',cat:'glp1',r:'y',grade:'B',price:'$144',legal:'Investigational',
+ what:'A dual GLP-1/glucagon agonist with a notable fatty-liver (MASH) signal.',how:'GLP-1 satiety plus glucagon metabolic effects.',
+ uses:'Investigational obesity & MASH.',evidence:'Grade B — phase-2/3.',sides:'GI; heart-rate; glucose.',avoid:'Pregnancy; incretin-class cautions.'},
+
+{n:'Tesofensine',aka:'Triple monoamine reuptake inhibitor',cat:'glp1',r:'o',grade:'C',price:'$80 (oral)',legal:'Not approved',
+ what:'A centrally-acting appetite suppressant affecting dopamine/norepinephrine/serotonin.',how:'Blocks reuptake of monoamines, reducing appetite.',
+ uses:'Investigational obesity.',evidence:'Grade C — some human data.',sides:'Stimulant effects: raised BP/heart rate, insomnia, mood; cardiac concern.',avoid:'Heart disease, hypertension, anxiety disorders, MAOI use.'},
+
+{n:'AOD-9604',aka:'GH fragment "fat-loss" peptide',cat:'glp1',r:'o',grade:'D',price:'$64–104',legal:'Not approved',
+ what:'A fragment of growth hormone marketed for fat loss.',how:'Claimed to stimulate lipolysis without GH\'s growth effects.',
+ uses:'Marketed for fat loss.',evidence:'Grade D — failed its human obesity trials.',sides:'Generally mild reported; efficacy is the real problem.',avoid:'Anyone expecting proven results.'},
+
+{n:'Frag 176-191',aka:'HGH fragment',cat:'glp1',r:'o',grade:'D',price:'$40',legal:'Not approved',
+ what:'A growth-hormone fragment marketed for targeted fat loss.',how:'Proposed lipolytic effect; human evidence lacking.',
+ uses:'Marketed fat loss.',evidence:'Grade D — no solid human efficacy.',sides:'Injection-site reactions; unknowns.',avoid:'Anyone expecting proven results.'},
+
+{n:'5-Amino-1MQ',aka:'NNMT inhibitor',cat:'glp1',r:'o',grade:'D',price:'$64–96',legal:'Not approved',
+ what:'A small-molecule NNMT inhibitor marketed for metabolism/fat loss.',how:'Inhibits nicotinamide N-methyltransferase in fat cells (preclinical).',
+ uses:'Marketed fat loss/metabolism.',evidence:'Grade D — preclinical hype, no human efficacy.',sides:'Unknown in humans.',avoid:'Anyone expecting proven results.'},
+
+{n:'SLU-PP-332',aka:'ERR agonist · "exercise mimetic"',cat:'glp1',r:'o',grade:'D',price:'$48–96',legal:'Research chemical',
+ what:'An ERR-agonist compound marketed as an "exercise in a bottle."',how:'Activates estrogen-related receptors to boost mitochondrial/fat metabolism (rodents).',
+ uses:'Marketed endurance/fat loss.',evidence:'Grade D — rodent-only; no human data.',sides:'Unknown in humans.',avoid:'Everyone until human data exists.'},
+
+{n:'Clenbuterol',aka:'Beta-2 agonist',cat:'glp1',r:'o',grade:'C',price:'$75 (oral)',legal:'Not human-approved (US)',
+ what:'A bronchodilator used off-label as a fat-loss/stimulant agent.',how:'Beta-2 receptor activation raises metabolic rate and lipolysis.',
+ uses:'Marketed fat loss/cutting.',evidence:'Grade C — works, but risk-heavy.',sides:'Cardiac arrhythmia, tremor, cramps, insomnia, raised BP.',avoid:'Any heart condition, hypertension, arrhythmia.'},
+
+{n:'Lipo Blend (MIC Plus)',aka:'Lipotropic B-vitamin/amino mix',cat:'glp1',r:'o',grade:'C',price:'$40',legal:'Compounded',
+ what:'A "fat-burner" injection of L-Carnitine, amino acids, and B-vitamins.',how:'Lipotropic agents proposed to aid fat metabolism.',
+ uses:'Marketed fat loss/energy.',evidence:'Grade C — weak controlled evidence for fat loss.',sides:'Injection-site reactions; generally low-risk.',avoid:'B-vitamin/component allergies.'},
+
+/* ---------- HEALING PEPTIDES ---------- */
+{n:'BPC-157',aka:'Body Protection Compound-157',cat:'healing',r:'o',grade:'D',price:'$36–56',legal:'Not approved · WADA-banned',
+ what:'A synthetic peptide from a stomach protein, marketed for tendon, gut, and soft-tissue healing.',
+ how:'Proposed to promote angiogenesis (new blood vessels) and growth-factor signaling at injury sites. Human mechanism unconfirmed.',
+ uses:'Tendon/ligament repair, gut healing, inflammation (all off-label/unproven).',
+ evidence:'Grade D — many rodent studies; essentially no human RCTs.',
+ sides:'Reported well-tolerated short-term; long-term safety, cancer risk (angiogenesis), and purity unstudied.',
+ avoid:'Active cancer; pregnancy; anyone expecting proven results. Banned in tested sport.',
+ pros:['Strong preclinical healing signal','Widely reported anecdotal relief'],
+ cons:['No human trials → effect unproven','Long-term/cancer safety unknown','Frequently mislabeled'],
+ ratings:{ 'Recovery':'?','Safety':6,'Evidence':3 }},
+
+{n:'TB-500',aka:'Thymosin β-4 fragment',cat:'healing',r:'o',grade:'D',price:'$40–64',legal:'Not approved · WADA-banned',
+ what:'A peptide fragment marketed alongside BPC-157 for systemic recovery and flexibility.',
+ how:'Regulates actin (cell structure); proposed to aid cell migration, tissue repair, reduce inflammation.',
+ uses:'Injury recovery (off-label/unproven).',evidence:'Grade D — preclinical; no human efficacy trials.',
+ sides:'Head-rush/fatigue anecdotally; long-term & cancer safety unstudied.',avoid:'Active cancer; pregnancy; tested athletes.',
+ ratings:{ 'Recovery':'?','Safety':6,'Evidence':3 }},
+
+{n:'GHK-Cu',aka:'Copper tripeptide-1',cat:'healing',r:'y',grade:'C',price:'$32–64',legal:'Cosmetic/OTC (topical)',
+ what:'A naturally-occurring copper-binding peptide used in skincare and marketed for hair, wounds, and collagen.',
+ how:'Stimulates collagen/elastin synthesis, wound remodeling, and antioxidant activity.',
+ uses:'Skin, hair, wound healing.',evidence:'Grade C — real topical/skin data; injectable/systemic claims weaker.',
+ sides:'Skin irritation; copper accumulation with excess systemic use.',avoid:'Wilson\'s disease / copper disorders.',
+ ratings:{ 'Skin':7,'Recovery':4,'Safety':7,'Evidence':5 }},
+
+{n:'Thymosin Alpha-1',aka:'Tα1 · Zadaxin',cat:'healing',r:'y',grade:'C',price:'$48',legal:'Approved abroad · not US',
+ what:'An immune-modulating peptide used clinically abroad for hepatitis and as a vaccine adjuvant.',
+ how:'Enhances T-cell function and immune regulation.',uses:'Immune support (approved for hepatitis in some countries).',
+ evidence:'Grade C — genuine immune data; not FDA-approved.',sides:'Generally mild; injection-site reactions.',avoid:'Immunosuppressed states without oversight.',
+ ratings:{ 'Immune':6,'Safety':6,'Evidence':5 }},
+
+{n:'KPV',aka:'Anti-inflammatory tripeptide',cat:'healing',r:'o',grade:'D',price:'$48',legal:'Not approved',
+ what:'A fragment of alpha-MSH marketed for gut and inflammatory conditions.',how:'Preclinical anti-inflammatory signaling.',
+ uses:'Gut/inflammation (unproven).',evidence:'Grade D — preclinical; no human trials.',sides:'Largely unknown in humans.',avoid:'Anyone expecting proven results.'},
+
+{n:'Glow / Klow / Wolverine',aka:'Multi-peptide recovery blends',cat:'healing',r:'o',grade:'D',price:'$80–104',legal:'Not approved',
+ what:'Marketing bundles combining BPC-157, TB-500, GHK-Cu (± KPV).',how:'Sum of the parts; each component preclinical.',
+ uses:'Recovery + skin (unproven as a combo).',evidence:'Grade D — no combined-product evidence.',sides:'Combined risks of each peptide.',avoid:'Active cancer; tested athletes.'},
+
+/* ---------- GROWTH HORMONE ---------- */
+{n:'HGH (Somatropin)',aka:'Recombinant human growth hormone',cat:'gh',r:'y',grade:'A / F',price:'$250–450',legal:'Rx-only · WADA-banned',
+ what:'Lab-made growth hormone. Approved for genuine GH deficiency & certain growth/wasting disorders — not anti-aging or bodybuilding.',
+ how:'Directly raises GH and IGF-1, driving cell growth, lipolysis, protein synthesis.',
+ uses:'GH deficiency, some pediatric/wasting conditions (approved). Anti-aging use unsupported.',
+ evidence:'Grade A for deficiency; weak/negative for anti-aging.',
+ sides:'Fluid retention, carpal tunnel, joint pain, insulin resistance/diabetes, acromegaly changes with chronic misuse; theoretical cancer-growth risk.',
+ avoid:'Active cancer, diabetes/insulin resistance, proliferative retinopathy; unsupervised use.',
+ pros:['Real body-composition effects','Legit for true deficiency'],
+ cons:['Diabetes/insulin risk','Counterfeits rampant','Federal offense to distribute off-label'],
+ ratings:{ 'Muscle':6,'Fat loss':6,'Safety':4,'Evidence':7 }},
+
+{n:'Tesamorelin',aka:'Egrifta · GHRH analog',cat:'gh',r:'g',grade:'A',price:'$32–60',legal:'FDA-approved · Rx-only',
+ what:'A GHRH analog, FDA-approved to reduce excess visceral fat in HIV-associated lipodystrophy.',
+ how:'Stimulates natural GH release, preferentially reducing visceral fat.',uses:'HIV-associated visceral fat (approved).',
+ evidence:'Grade A for its approved use; off-label less studied.',sides:'Joint pain, fluid retention, raised blood sugar, injection-site reactions.',avoid:'Active cancer, diabetes, pregnancy.',
+ ratings:{ 'Visceral fat':7,'Safety':6,'Evidence':7 }},
+
+{n:'Sermorelin',aka:'GHRH analog',cat:'gh',r:'y',grade:'C',price:'$32–56',legal:'Rx (compounded)',
+ what:'A GHRH analog that stimulates natural GH release; historically used diagnostically.',how:'Triggers the pituitary to release its own GH.',
+ uses:'GH support / anti-aging (off-label).',evidence:'Grade C — best-established releaser; limited long-term data.',sides:'Flushing, injection-site reactions, headache.',avoid:'Active cancer, pregnancy.'},
+
+{n:'CJC-1295 (± DAC)',aka:'GHRH analog',cat:'gh',r:'o',grade:'D',price:'$48–68',legal:'Not approved',
+ what:'A long-acting GHRH analog, usually paired with ipamorelin.',how:'Sustained stimulation of natural GH release.',
+ uses:'GH support (off-label).',evidence:'Grade D — limited human safety data.',sides:'Water retention, flushing, tingling, headache.',avoid:'Active cancer, diabetes, pregnancy.'},
+
+{n:'Ipamorelin',aka:'GH secretagogue',cat:'gh',r:'o',grade:'D',price:'$48–72',legal:'Not approved',
+ what:'A selective ghrelin-receptor GH secretagogue, considered mild.',how:'Stimulates GH release without much prolactin/cortisol effect.',
+ uses:'GH support/recovery (off-label).',evidence:'Grade D — little long-term human data.',sides:'Generally mild; head-rush, water retention.',avoid:'Active cancer, pregnancy.'},
+
+{n:'GHRP-2 / GHRP-6',aka:'GH secretagogues',cat:'gh',r:'o',grade:'D',price:'$24',legal:'Not approved',
+ what:'Peptides that stimulate GH release; GHRP-6 strongly raises appetite.',how:'Ghrelin-receptor agonism → GH pulse (+ prolactin/cortisol).',
+ uses:'GH support / appetite (off-label).',evidence:'Grade D — limited human data.',sides:'Raised prolactin & cortisol, hunger, water retention.',avoid:'Active cancer, pregnancy.'},
+
+{n:'Hexarelin',aka:'GH secretagogue',cat:'gh',r:'o',grade:'D',price:'$36',legal:'Not approved',
+ what:'A potent GH secretagogue that desensitizes quickly.',how:'Strong ghrelin-receptor GH release.',uses:'GH support (off-label).',
+ evidence:'Grade D.',sides:'Prolactin/cortisol rise; tolerance builds fast.',avoid:'Active cancer, pregnancy.'},
+
+{n:'MK-677 (Ibutamoren)',aka:'Oral ghrelin mimetic',cat:'gh',r:'o',grade:'C',price:'$110',legal:'Not approved',
+ what:'An oral compound that raises GH and IGF-1.',how:'Mimics ghrelin to stimulate sustained GH release.',
+ uses:'GH/IGF, appetite, sleep (off-label).',evidence:'Grade C — real hormonal effect studied.',sides:'Water retention, insulin resistance/raised blood sugar, appetite, lethargy.',avoid:'Diabetes/insulin resistance, heart failure, active cancer.'},
+
+{n:'IGF-1 LR3',aka:'Insulin-like growth factor',cat:'gh',r:'r',grade:'D',price:'$72',legal:'Not approved · WADA-banned',
+ what:'A modified, long-acting growth factor marketed for muscle growth.',how:'Directly activates IGF-1 receptors driving cell growth.',
+ uses:'Muscle growth (off-label).',evidence:'Grade D — no human safety data for this use.',sides:'Hypoglycemia (can be dangerous), organ growth, theoretical cancer-growth risk.',avoid:'Active/history of cancer, diabetes.'},
+
+{n:'PEG-MGF / MGF',aka:'Mechano growth factor',cat:'gh',r:'o',grade:'D',price:'$64',legal:'Not approved',
+ what:'A variant of IGF-1 marketed for localized muscle repair.',how:'Proposed to activate muscle satellite cells (rodent data).',
+ uses:'Muscle repair (off-label).',evidence:'Grade D — rodent-only.',sides:'Unknown in humans.',avoid:'Active cancer.'},
+
+{n:'Follistatin',aka:'Myostatin inhibitor',cat:'gh',r:'r',grade:'D',price:'$80',legal:'Not approved',
+ what:'A protein marketed to block myostatin and drive extreme muscle growth.',how:'Inhibits myostatin, a limiter of muscle growth.',
+ uses:'Muscle growth (off-label).',evidence:'Grade D — essentially no safe human data.',sides:'Unknown; potential effects on other tissues; very high counterfeit rate.',avoid:'Everyone until real data exists.'},
+
+/* ---------- LONGEVITY ---------- */
+{n:'SS-31 (Elamipretide)',aka:'Mitochondrial peptide',cat:'longevity',r:'y',grade:'B',price:'$120',legal:'Investigational',
+ what:'A mitochondria-targeting peptide in clinical trials for mitochondrial disease.',how:'Stabilizes cardiolipin in the inner mitochondrial membrane, improving energy production.',
+ uses:'Mitochondrial disease (trials); marketed for longevity.',evidence:'Grade B — real clinical trials; not a proven longevity drug.',sides:'Injection-site reactions; long-term unknown.',avoid:'Pregnancy; anyone expecting proven anti-aging benefit.'},
+
+{n:'NAD+ / NMN',aka:'Cellular-energy precursors',cat:'longevity',r:'o',grade:'C',price:'$120',legal:'Supplement / compounded',
+ what:'Precursors to NAD+, a coenzyme central to cellular energy and repair.',how:'Aim to raise cellular NAD+ levels, which decline with age.',
+ uses:'Marketed energy/longevity.',evidence:'Grade C — popular; human anti-aging benefit unproven.',sides:'IV NAD+ causes flushing, nausea, chest tightness during infusion.',avoid:'None absolute; value likely overstated.'},
+
+{n:'MOTS-c',aka:'Mitochondrial-derived peptide',cat:'longevity',r:'o',grade:'D',price:'$40–80',legal:'Not approved',
+ what:'A mitochondrial peptide marketed for metabolism and endurance.',how:'Influences metabolic regulation (rodent data).',
+ uses:'Metabolism/endurance (off-label).',evidence:'Grade D — rodent data, no human trials.',sides:'Unknown in humans.',avoid:'Anyone expecting proven results.'},
+
+{n:'Epithalon',aka:'Telomerase peptide',cat:'longevity',r:'o',grade:'D',price:'$48–120',legal:'Not approved',
+ what:'A peptide marketed to activate telomerase and slow aging.',how:'Claimed telomerase activation (older Eastern-European research).',
+ uses:'Marketed anti-aging.',evidence:'Grade D — weak/unreplicated in modern trials.',sides:'Largely unknown.',avoid:'Anyone expecting proven results.'},
+
+{n:'Pinealon / Vesugen',aka:'Bioregulator peptides',cat:'longevity',r:'o',grade:'D',price:'$48–60',legal:'Not approved',
+ what:'Short "peptide bioregulators" in the epithalon lineage.',how:'Claimed tissue-specific regulatory effects.',
+ uses:'Marketed anti-aging/cognition.',evidence:'Grade D — minimal rigorous data.',sides:'Largely unknown.',avoid:'Anyone expecting proven results.'},
+
+{n:'Glutathione',aka:'Master antioxidant',cat:'longevity',r:'y',grade:'C',price:'$64',legal:'Supplement / IV',
+ what:'The body\'s main intracellular antioxidant.',how:'Neutralizes oxidative stress; supports detox pathways.',
+ uses:'Antioxidant, skin, general wellness.',evidence:'Grade C — real antioxidant; oral absorption poor, IV longevity claims overstated.',sides:'Generally well-tolerated; IV rare reactions.',avoid:'Sulfur sensitivity (rare).'},
+
+/* ---------- COGNITIVE / SLEEP / SEXUAL ---------- */
+{n:'PT-141 (Bremelanotide)',aka:'Melanocortin agonist',cat:'cognitive',r:'y',grade:'B',price:'$24',legal:'FDA-approved (female HSDD)',
+ what:'A melanocortin agonist approved for low sexual desire in women; used off-label by men.',how:'Acts on brain melanocortin receptors to increase sexual desire.',
+ uses:'Low libido.',evidence:'Grade B — approved for female HSDD.',sides:'Nausea, flushing, transient blood-pressure rise, headache.',avoid:'Uncontrolled hypertension, cardiovascular disease.'},
+
+{n:'Melanotan 2',aka:'Melanocortin agonist',cat:'cognitive',r:'o',grade:'C',price:'$32',legal:'Not approved',
+ what:'A tanning peptide that also affects libido.',how:'Stimulates melanocytes (pigment) and melanocortin receptors.',
+ uses:'Tanning, libido (off-label).',evidence:'Grade C — works for tanning; safety concerns.',sides:'Nausea, BP changes, darkening/new moles — melanoma monitoring concern.',avoid:'History of melanoma, atypical moles.'},
+
+{n:'Semax',aka:'Nootropic peptide',cat:'cognitive',r:'o',grade:'C',price:'$52',legal:'Russian Rx · not US',
+ what:'A peptide used in Russia for cognition and neuroprotection.',how:'Modulates BDNF and neurotransmitters.',
+ uses:'Focus, recovery (off-label).',evidence:'Grade C — little Western trial data.',sides:'Generally mild; limited safety data.',avoid:'Pregnancy; unknown interactions.'},
+
+{n:'Selank',aka:'Anxiolytic peptide',cat:'cognitive',r:'o',grade:'C',price:'$52',legal:'Russian Rx · not US',
+ what:'A peptide used in Russia for anxiety and calm focus.',how:'Modulates GABA/serotonin and immune signaling.',
+ uses:'Anxiety, focus (off-label).',evidence:'Grade C — limited Western data.',sides:'Generally mild.',avoid:'Pregnancy; unknown interactions.'},
+
+{n:'DSIP',aka:'Delta sleep-inducing peptide',cat:'cognitive',r:'o',grade:'D',price:'$60',legal:'Not approved',
+ what:'A peptide marketed as a sleep aid.',how:'Proposed to influence sleep-regulating pathways.',
+ uses:'Sleep (off-label).',evidence:'Grade D — inconsistent human results.',sides:'Largely unknown.',avoid:'Anyone expecting reliable results.'},
+
+{n:'Methylene Blue',aka:'Redox dye / drug',cat:'cognitive',r:'o',grade:'C',price:'$48',legal:'Rx drug at clinical doses',
+ what:'A century-old dye/drug with mitochondrial and cognitive interest.',how:'Acts as an electron cycler supporting mitochondrial function; MAO-inhibiting at higher doses.',
+ uses:'Marketed cognition/energy.',evidence:'Grade C — real at clinical doses.',sides:'Serotonin syndrome with SSRIs/antidepressants; blue urine; hemolysis in G6PD deficiency.',avoid:'SSRI/SNRI/MAOI use, G6PD deficiency, pregnancy.'},
+
+{n:'Oxytocin',aka:'"Bonding" hormone',cat:'cognitive',r:'o',grade:'C',price:'$52',legal:'Rx (specific uses)',
+ what:'A natural hormone marketed for mood/bonding.',how:'Acts on oxytocin receptors influencing social/emotional behavior.',
+ uses:'Mood/bonding (off-label).',evidence:'Grade C — self-use benefit weakly supported.',sides:'Generally mild intranasally.',avoid:'Pregnancy (uterine effects).'},
+
+{n:'Kisspeptin',aka:'Reproductive-axis peptide',cat:'cognitive',r:'o',grade:'C',price:'$48',legal:'Research-stage',
+ what:'A peptide that stimulates the reproductive hormone axis.',how:'Triggers GnRH release → LH/FSH → sex hormones.',
+ uses:'Libido, hormone-axis research.',evidence:'Grade C — research-stage.',sides:'Largely unknown; hormonal effects.',avoid:'Hormone-sensitive conditions.'},
+
+{n:'VIP',aka:'Vasoactive intestinal peptide',cat:'cognitive',r:'o',grade:'D',price:'$60',legal:'Not approved',
+ what:'A signaling peptide used in the CIRS/mold community, often intranasally.',how:'Broad neuro/immune/vascular signaling.',
+ uses:'Inflammation/sinus (niche, off-label).',evidence:'Grade D — little standardized evidence.',sides:'BP changes, flushing.',avoid:'Low blood pressure; unknown interactions.'},
+
+/* ---------- STEROIDS ---------- */
+{n:'Testosterone',aka:'Cyp · Enan · Prop · Sustanon · base androgen',cat:'steroid',r:'y',grade:'A',price:'$40–100',legal:'Schedule III · Rx as TRT · WADA-banned',
+ what:'The primary male androgen. Prescribed as TRT for clinically low testosterone; abused supraphysiologically for muscle.',
+ how:'Binds androgen receptors to drive protein synthesis, muscle, bone, libido, mood, red-cell production.',
+ uses:'TRT for deficiency (approved, supervised).',evidence:'Grade A for treating deficiency.',
+ sides:'High hematocrit (clot risk), high estrogen/gyno, acne, hair loss, BP; full suppression of natural production; fertility loss.',
+ avoid:'Prostate/breast cancer, high hematocrit, untreated sleep apnea, seeking fertility.',
+ pros:['Real muscle/recovery/libido benefit','Legit medicine for deficiency'],
+ cons:['Shuts down natural production','Raises hematocrit/estrogen','Cardiovascular load if abused'],
+ ratings:{ 'Muscle':8,'Recovery':7,'Safety':6,'Evidence':8 }},
+
+{n:'Trenbolone',aka:'Acetate · Enan · Hex (Parabolan) · Tri-Tren',cat:'steroid',r:'r',grade:'—',price:'$85–120',legal:'Schedule III · not for humans',
+ what:'A powerful veterinary-origin 19-nor steroid; widely considered the harshest common AAS.',
+ how:'Very high androgen-receptor affinity; strongly anabolic/androgenic, no aromatization but raises prolactin.',
+ uses:'No human medical use.',evidence:'No human data — safety essentially anecdotal.',
+ sides:'Severe BP & cardiovascular strain, night sweats, insomnia, aggression/anxiety, prolactin issues, kidney stress, deep suppression.',
+ avoid:'Effectively everyone outside extreme, informed, monitored contexts.',
+ pros:['Extremely potent recomposition'],cons:['Harshest cardiovascular/mental side effects','No human safety data','Deep suppression'],
+ ratings:{ 'Muscle':10,'Safety':2,'Evidence':2 }},
+
+{n:'Nandrolone (Deca / NPP)',aka:'19-nor steroid',cat:'steroid',r:'o',grade:'C',price:'$75–85',legal:'Schedule III · limited Rx',
+ what:'A 19-nor anabolic used medically (anemia, wasting) and abused for mass/joints.',how:'Strong anabolic with progestogenic activity; raises prolactin.',
+ uses:'Some medical (anemia/wasting); off-label mass.',evidence:'Grade C — some medical data.',sides:'Deep suppression, prolactin ("deca dick"), mood, long detection.',avoid:'Seeking fertility; prolactin-sensitive; cancer history.'},
+
+{n:'Boldenone (EQ)',aka:'Testosterone derivative',cat:'steroid',r:'o',grade:'D',price:'$85',legal:'Schedule III · veterinary',
+ what:'A veterinary steroid used for slow lean gains and appetite.',how:'Mild anabolic; strongly raises red-cell production.',
+ uses:'Off-label lean bulking.',evidence:'Grade D — no human medical data.',sides:'Large hematocrit rise (clot risk), anxiety anecdotally.',avoid:'High hematocrit, cardiovascular risk.'},
+
+{n:'Masteron (Prop / Enan)',aka:'DHT derivative',cat:'steroid',r:'o',grade:'D',price:'$100–125',legal:'Schedule III',
+ what:'A DHT-derived steroid used cosmetically for a "dry/hard" look.',how:'Androgenic, anti-estrogenic; no aromatization.',
+ uses:'Off-label cutting/cosmetic.',evidence:'Grade D.',sides:'Hair loss, cholesterol worsening; cosmetic-only benefit.',avoid:'Hair-loss prone; poor lipids.'},
+
+{n:'Primobolan',aka:'Methenolone · DHT derivative',cat:'steroid',r:'o',grade:'D',price:'$100–275',legal:'Schedule III',
+ what:'A DHT-derived steroid with a "mild/safe" reputation.',how:'Mild anabolic; no aromatization.',
+ uses:'Off-label lean gains.',evidence:'Grade D.',sides:'Still suppressive; very high counterfeit rate.',avoid:'Hair-loss prone; anyone assuming "mild = safe."'},
+
+{n:'DHB (Dihydroboldenone)',aka:'1-Testosterone · DHT derivative',cat:'steroid',r:'o',grade:'D',price:'$50',legal:'Schedule III',
+ what:'A potent DHT-derived steroid.',how:'Strong anabolic with no aromatization.',uses:'Off-label mass/strength.',
+ evidence:'Grade D — limited data.',sides:'Harsh injection-site pain, lethargy, suppression.',avoid:'Poor injection tolerance.'},
+
+{n:'Trestolone (MENT)',aka:'19-nor steroid',cat:'steroid',r:'r',grade:'D',price:'$130',legal:'Schedule III',
+ what:'A very potent 19-nor steroid, also studied as male contraceptive.',how:'Powerful anabolic that aromatizes heavily.',
+ uses:'Off-label mass.',evidence:'Grade D.',sides:'Very suppressive, high estrogen, gyno.',avoid:'Estrogen-sensitive; seeking fertility.'},
+
+{n:'Anadrol (Oxymetholone)',aka:'Oral 17aa steroid',cat:'steroid',r:'r',grade:'C',price:'$65–125',legal:'Schedule III · limited Rx',
+ what:'A powerful oral steroid used medically for anemia; abused for rapid mass.',how:'Strong oral anabolic with estrogenic-type water retention.',
+ uses:'Some medical (anemia); off-label bulking.',evidence:'Grade C — medical use exists.',sides:'Very hepatotoxic; big BP & water; crushes lipids.',avoid:'Any liver issue, hypertension, poor lipids.'},
+
+{n:'Superdrol (Methasterone)',aka:'Oral 17aa steroid',cat:'steroid',r:'r',grade:'D',price:'$80',legal:'Schedule III',
+ what:'A very strong oral steroid, among the most toxic.',how:'Potent oral anabolic, no aromatization.',uses:'Off-label mass/strength.',
+ evidence:'Grade D.',sides:'Among the most liver-toxic & lipid-destroying orals; lethargy, BP.',avoid:'Any liver issue, poor lipids.'},
+
+{n:'Halotestin (Fluoxymesterone)',aka:'Oral 17aa steroid',cat:'steroid',r:'r',grade:'C',price:'$80',legal:'Schedule III · limited Rx',
+ what:'An extremely androgenic oral used for strength/aggression.',how:'Very high androgenic activity.',uses:'Niche strength (off-label).',
+ evidence:'Grade C — medical history.',sides:'Extreme hepatotoxicity, aggression, poor lipids.',avoid:'Any liver issue.'},
+
+{n:'Dianabol (Methandrostenolone)',aka:'Oral 17aa steroid',cat:'steroid',r:'o',grade:'C',price:'$80',legal:'Schedule III',
+ what:'A classic bulking oral steroid.',how:'Strong anabolic that aromatizes to estrogen.',uses:'Off-label bulking.',
+ evidence:'Grade C.',sides:'Liver, estrogen/water, BP, gyno.',avoid:'Liver issues, estrogen-sensitive, hypertension.'},
+
+{n:'Winstrol (Stanozolol)',aka:'Oral/inj 17aa steroid',cat:'steroid',r:'o',grade:'C',price:'$75–125',legal:'Schedule III',
+ what:'A DHT-derived steroid for a hard/dry look.',how:'Anabolic, no aromatization.',uses:'Off-label cutting.',
+ evidence:'Grade C.',sides:'Liver, harsh on lipids & joints, hair loss.',avoid:'Joint problems, poor lipids, liver issues.'},
+
+{n:'Anavar (Oxandrolone)',aka:'Oral 17aa steroid',cat:'steroid',r:'o',grade:'B',price:'$100–125',legal:'Schedule III · Rx',
+ what:'A milder oral steroid with genuine medical uses (wasting, burns).',how:'Mild anabolic, DHT-derived.',uses:'Medical wasting; off-label cutting.',
+ evidence:'Grade B — real medical data.',sides:'Milder liver hit but still lowers HDL; very often faked.',avoid:'Poor lipids, liver issues.'},
+
+{n:'Turinabol (Tbol)',aka:'Oral 17aa steroid',cat:'steroid',r:'o',grade:'C',price:'$100',legal:'Schedule III',
+ what:'A milder oral steroid derived from Dianabol.',how:'Anabolic, no aromatization.',uses:'Off-label lean gains.',
+ evidence:'Grade C.',sides:'Still suppressive & liver-relevant, lipids.',avoid:'Liver issues, poor lipids.'},
+
+{n:'Primo Acetate (oral)',aka:'Oral methenolone',cat:'steroid',r:'o',grade:'D',price:'$100',legal:'Schedule III',
+ what:'An oral DHT-derived steroid with poor bioavailability.',how:'Mild anabolic.',uses:'Off-label lean gains.',
+ evidence:'Grade D.',sides:'Poorly absorbed, often underdosed/faked; still suppressive.',avoid:'Anyone assuming "mild = safe."'},
+
+{n:'Proviron (Mesterolone)',aka:'Oral DHT androgen',cat:'steroid',r:'o',grade:'C',price:'$100',legal:'Schedule III · Rx abroad',
+ what:'An oral androgen used as an ancillary (libido, free-test).',how:'Binds SHBG, mild androgen; not 17aa-hepatotoxic.',uses:'Ancillary/libido (off-label).',
+ evidence:'Grade C.',sides:'Hair loss, lipids; milder than most orals.',avoid:'Hair-loss prone, prostate issues.'},
+
+/* ---------- SARMS ---------- */
+{n:'Ostarine (MK-2866)',aka:'SARM',cat:'sarm',r:'o',grade:'C',price:'$90',legal:'Not approved · WADA-banned',
+ what:'The mildest, most-studied SARM, marketed for lean mass/recomp.',how:'Selectively activates androgen receptors in muscle/bone.',
+ uses:'Recomp/lean mass (off-label).',evidence:'Grade C — human trials exist (not approved).',sides:'Still testosterone-suppressive; liver-injury case reports.',avoid:'Tested athletes; liver issues.'},
+
+{n:'RAD-140 (Testolone)',aka:'SARM',cat:'sarm',r:'r',grade:'D',price:'$140',legal:'Not approved · WADA-banned',
+ what:'A potent SARM marketed for mass and strength.',how:'Strong selective androgen-receptor activation.',uses:'Mass/strength (off-label).',
+ evidence:'Grade D.',sides:'Strong suppression; liver-toxicity reports; aggression/mood.',avoid:'Tested athletes; liver issues.'},
+
+{n:'YK-11',aka:'Steroidal "SARM"',cat:'sarm',r:'r',grade:'D',price:'$100',legal:'Not approved · WADA-banned',
+ what:'Marketed as a myostatin-affecting SARM but is actually steroidal.',how:'Steroidal androgen-receptor activity; myostatin claims.',uses:'Mass (off-label).',
+ evidence:'Grade D.',sides:'Suppressive & liver-relevant; poorly characterized.',avoid:'Tested athletes; liver issues.'},
+
+{n:'GW-501516 (Cardarine)',aka:'PPARδ agonist',cat:'sarm',r:'r',grade:'F',price:'$85',legal:'Not approved · WADA-banned',
+ what:'A PPARδ agonist (not a SARM) marketed for endurance and fat loss.',how:'Activates PPARδ to shift metabolism toward fat use.',
+ uses:'Endurance/fat loss (off-label).',evidence:'Grade F — caused cancer in animal studies; development halted.',sides:'Cancer signal in animals; unknown human risk.',avoid:'Everyone — safety signal against use.'},
+
+{n:'SR9009 (Stenabolic)',aka:'REV-ERB agonist',cat:'sarm',r:'o',grade:'D',price:'$80',legal:'Not approved',
+ what:'A REV-ERB agonist marketed for endurance/fat loss.',how:'Modulates circadian/metabolic genes (rodent data).',uses:'Endurance (off-label).',
+ evidence:'Grade D — poor oral bioavailability, rodent-only.',sides:'Largely unknown in humans.',avoid:'Anyone expecting proven results.'},
+
+{n:'MK-677 (Ibutamoren)',aka:'GH secretagogue (not a true SARM)',cat:'sarm',r:'o',grade:'C',price:'$110',legal:'Not approved',
+ what:'Often sold with SARMs; actually an oral GH secretagogue.',how:'Ghrelin mimetic raising GH/IGF-1.',uses:'GH/appetite/sleep (off-label).',
+ evidence:'Grade C.',sides:'Water retention, insulin resistance, appetite, lethargy.',avoid:'Diabetes/insulin resistance, heart failure.'},
+
+/* ---------- SUPPORT ---------- */
+{n:'Anastrozole (Arimidex)',aka:'Aromatase inhibitor',cat:'support',r:'y',grade:'A',price:'$75',legal:'Rx',
+ what:'An aromatase inhibitor that lowers estrogen; used with androgens to control estrogen.',how:'Blocks conversion of androgens to estrogen.',
+ uses:'Estrogen control (breast cancer approved; AAS use off-label).',evidence:'Grade A (oncology).',sides:'Crashing estrogen harms lipids, bones, joints, mood, libido.',avoid:'Low estrogen; osteoporosis.'},
+
+{n:'Aromasin / Letrozole',aka:'Aromatase inhibitors',cat:'support',r:'y',grade:'A',price:'$60–80',legal:'Rx',
+ what:'Aromatase inhibitors; letrozole is very potent.',how:'Suppress estrogen production.',uses:'Estrogen control / gyno.',
+ evidence:'Grade A (oncology).',sides:'Easy to over-suppress estrogen → joints, mood, lipids, libido.',avoid:'Low estrogen; bone-density concerns.'},
+
+{n:'Tamoxifen (Nolvadex)',aka:'SERM',cat:'support',r:'y',grade:'A',price:'$75',legal:'Rx',
+ what:'A SERM used to manage gyno and restart natural testosterone.',how:'Blocks estrogen at breast tissue; stimulates LH/FSH.',uses:'Gyno management, PCT.',
+ evidence:'Grade A.',sides:'Clot risk, mood, vision (rare).',avoid:'Clotting disorders, pregnancy.'},
+
+{n:'Clomid / Enclomiphene',aka:'SERMs',cat:'support',r:'y',grade:'B',price:'$70–125',legal:'Rx',
+ what:'SERMs used to restart or raise natural testosterone.',how:'Block estrogen feedback → more LH/FSH → more testosterone.',uses:'Testosterone restart / fertility.',
+ evidence:'Grade B.',sides:'Clomid: mood/vision effects; enclomiphene cleaner.',avoid:'Clotting disorders, mood instability (clomid).'},
+
+{n:'HCG / HMG',aka:'Gonadotropins',cat:'support',r:'y',grade:'A',price:'$50–90',legal:'Rx',
+ what:'Hormones that mimic/supply LH/FSH to maintain testicular function.',how:'Stimulate testes directly to preserve size/fertility.',uses:'Fertility, testicular maintenance on TRT.',
+ evidence:'Grade A.',sides:'Estrogen rise, acne, mood; needs monitoring.',avoid:'Hormone-sensitive cancers.'},
+
+{n:'Gonadorelin',aka:'GnRH analog',cat:'support',r:'o',grade:'C',price:'$36',legal:'Rx',
+ what:'A GnRH analog used to stimulate the LH/FSH axis.',how:'Triggers pituitary gonadotropin release.',uses:'Testicular-axis support.',
+ evidence:'Grade C — limited standardized data for this use.',sides:'Injection reactions; hormonal effects.',avoid:'Hormone-sensitive conditions.'},
+
+{n:'Cabergoline',aka:'Dopamine agonist',cat:'support',r:'o',grade:'A',price:'$50',legal:'Rx',
+ what:'A dopamine agonist that lowers prolactin.',how:'Stimulates dopamine receptors, suppressing prolactin.',uses:'High prolactin (from 19-nors, prolactinoma).',
+ evidence:'Grade A (medical).',sides:'Nausea, dizziness; high doses linked to heart-valve issues.',avoid:'Valvular heart disease.'},
+
+{n:'Metformin',aka:'Antidiabetic',cat:'support',r:'y',grade:'A',price:'$100',legal:'Rx',
+ what:'A first-line diabetes drug also studied for longevity.',how:'Lowers hepatic glucose output, improves insulin sensitivity.',uses:'T2 diabetes, insulin resistance.',
+ evidence:'Grade A.',sides:'GI upset, B12 depletion, rare lactic acidosis.',avoid:'Significant kidney impairment.'},
+
+{n:'Statins (Atorva / Rosuva)',aka:'Lipid-lowering',cat:'support',r:'g',grade:'A',price:'$50',legal:'Rx',
+ what:'Cholesterol-lowering drugs — relevant since many compounds wreck lipids.',how:'Inhibit cholesterol synthesis in the liver.',uses:'High cholesterol, cardiovascular prevention.',
+ evidence:'Grade A.',sides:'Muscle aches, liver enzyme rise (monitored), rare myopathy.',avoid:'Active liver disease, pregnancy.'},
+
+{n:'ARBs (Telmisartan / Losartan)',aka:'Blood-pressure drugs',cat:'support',r:'g',grade:'A',price:'$50–75',legal:'Rx',
+ what:'Angiotensin-receptor blockers for blood pressure.',how:'Block angiotensin II, relaxing blood vessels.',uses:'Hypertension.',
+ evidence:'Grade A.',sides:'Raised potassium, dizziness, kidney monitoring.',avoid:'Pregnancy, certain kidney conditions.'},
+
+{n:'Beta-blockers (Metoprolol / Nebivolol)',aka:'Cardiac drugs',cat:'support',r:'y',grade:'A',price:'$40–60',legal:'Rx',
+ what:'Drugs that slow heart rate and lower blood pressure.',how:'Block beta-adrenergic receptors.',uses:'Hypertension, arrhythmia, heart conditions.',
+ evidence:'Grade A.',sides:'Fatigue, low HR/BP; don\'t stop abruptly.',avoid:'Certain bradycardias, unmanaged asthma (some).'},
+
+{n:'Diuretics (Furosemide / Spironolactone)',aka:'Water pills',cat:'support',r:'o',grade:'A',price:'$50–60',legal:'Rx',
+ what:'Powerful fluid-removing drugs; misused for "drying out."',how:'Increase renal fluid/electrolyte excretion.',uses:'Fluid overload, BP, (spiro also anti-androgen).',
+ evidence:'Grade A (medical).',sides:'Dangerous electrolyte/fluid shifts, cramps, arrhythmia, fainting when misused.',avoid:'Dehydration, electrolyte disorders, kidney issues.'},
+
+{n:'T3 / T4 (Thyroid)',aka:'Thyroid hormones',cat:'support',r:'o',grade:'A',price:'$75',legal:'Rx',
+ what:'Thyroid hormones sometimes misused for fat loss.',how:'Raise metabolic rate.',uses:'Hypothyroidism (medical).',
+ evidence:'Grade A (medical).',sides:'Self-use risks arrhythmia, muscle loss, thyroid suppression.',avoid:'Normal thyroid function; heart disease.'},
+
+{n:'Accutane (Isotretinoin)',aka:'Retinoid',cat:'support',r:'y',grade:'A',price:'$100',legal:'Rx (monitored program)',
+ what:'A powerful acne drug — relevant since androgens cause acne.',how:'Shrinks oil glands, alters skin turnover.',uses:'Severe acne.',
+ evidence:'Grade A.',sides:'Liver, lipids, dryness, mood; severe birth defects.',avoid:'Pregnancy (absolute), liver disease.'},
+
+{n:'PDE5 (Tadalafil / Sildenafil)',aka:'ED drugs',cat:'support',r:'y',grade:'A',price:'$85–110',legal:'Rx',
+ what:'Erectile-dysfunction drugs (Cialis/Viagra).',how:'Relax blood vessels to increase blood flow.',uses:'ED; tadalafil also BPH.',
+ evidence:'Grade A.',sides:'Headache, flushing, BP drop; dangerous with nitrates.',avoid:'Nitrate use, significant cardiovascular disease.'},
+
+{n:'Gabapentin',aka:'Nerve/anxiety drug',cat:'support',r:'y',grade:'A',price:'$80',legal:'Rx',
+ what:'A prescription drug for nerve pain, seizures, and anxiety.',how:'Modulates calcium channels in the nervous system.',uses:'Nerve pain, anxiety, sleep (off-label).',
+ evidence:'Grade A.',sides:'Sedation, dizziness, dependence/withdrawal potential.',avoid:'Abrupt discontinuation; combining with other sedatives.'},
+
+{n:'Buspirone',aka:'Anxiety drug',cat:'support',r:'y',grade:'A',price:'$110',legal:'Rx',
+ what:'A non-sedating anti-anxiety medication.',how:'Serotonin (5-HT1A) partial agonist.',uses:'Generalized anxiety.',
+ evidence:'Grade A.',sides:'Dizziness, nausea; serotonin interactions.',avoid:'MAOI use.'},
+
+{n:'Antibiotics (Amoxicillin / Doxycycline)',aka:'Antibacterials',cat:'support',r:'o',grade:'A',price:'$30–50',legal:'Rx',
+ what:'Prescription antibiotics for bacterial infections.',how:'Kill/inhibit bacteria.',uses:'Bacterial infections (Rx).',
+ evidence:'Grade A.',sides:'GI upset, allergy; self-dosing drives resistance & masks serious infection.',avoid:'Self-treating without diagnosis; known allergy.'},
+
+{n:'Ivermectin',aka:'Antiparasitic',cat:'support',r:'o',grade:'A',price:'$120',legal:'Rx',
+ what:'A prescription antiparasitic drug.',how:'Paralyzes parasites via chloride channels.',uses:'Parasitic infections (approved).',
+ evidence:'Grade A for parasites; not a proven general antiviral/wellness agent.',sides:'GI, dizziness; toxicity in overdose.',avoid:'Using for unproven indications.'},
+
+{n:'Vitamin D / B12 / NAD+ / Glutathione',aka:'Supportive supplements',cat:'support',r:'y',grade:'B',price:'$32–150',legal:'Supplement',
+ what:'Common supportive supplements.',how:'Replace deficiencies / act as cofactors/antioxidants.',uses:'Deficiency correction, general support.',
+ evidence:'Grade B — real for deficiency; broader benefits often overstated.',sides:'Generally low-risk; megadosing vitamin D is toxic.',avoid:'Megadosing fat-soluble vitamins.'}
+];
+
+/* ---------- render ---------- */
+const grid=document.getElementById('grid');
+const catBar=document.getElementById('cats');
+const rateBar=document.getElementById('rates');
+const qEl=document.getElementById('q');
+const countEl=document.getElementById('count');
+const overlay=document.getElementById('overlay');
+const modal=document.getElementById('modal');
+let curCat='all', curRate='all', curQ='';
+
+CATS.forEach((c,i)=>{const b=document.createElement('span');b.className='chip'+(i===0?' active':'');b.textContent=c.name;b.dataset.cat=c.id;catBar.appendChild(b);});
+catBar.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{curCat=ch.dataset.cat;catBar.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));ch.classList.add('active');render();});
+rateBar.querySelectorAll('.chip').forEach((ch,i)=>{if(i===0)ch.classList.add('active');ch.onclick=()=>{curRate=ch.dataset.rate;rateBar.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));ch.classList.add('active');render();};});
+qEl.oninput=()=>{curQ=qEl.value.trim().toLowerCase();render();};
+
+function matches(d){
+  if(curCat!=='all'&&d.cat!==curCat)return false;
+  if(curRate!=='all'&&d.r!==curRate)return false;
+  if(curQ){const hay=(d.n+' '+(d.aka||'')).toLowerCase();if(!hay.includes(curQ))return false;}
+  return true;
+}
+function catName(id){return (CATS.find(c=>c.id===id)||{}).name||id;}
+
+function render(){
+  const list=D.filter(matches).sort((a,b)=>a.n.localeCompare(b.n));
+  grid.innerHTML='';
+  countEl.textContent=list.length+' of '+D.length;
+  if(!list.length){grid.innerHTML='<div class="empty">No compounds match your search.</div>';return;}
+  list.forEach((d,idx)=>{
+    const el=document.createElement('div');
+    el.className='cardx '+d.r;
+    el.tabIndex=0;
+    el.innerHTML=`<h3>${d.n}</h3><div class="cls">${d.aka||''}</div>
+      <div class="foot"><span class="cat-tag">${catName(d.cat)}</span><span class="price-tag">${d.price||''}</span></div>`;
+    el.onclick=()=>openModal(d);
+    el.onkeydown=e=>{if(e.key==='Enter')openModal(d);};
+    grid.appendChild(el);
+  });
+}
+
+function li(arr){return (arr||[]).map(x=>`<li>${x}</li>`).join('');}
+function ratingsRow(o){if(!o)return'';return '<div class="ratings">'+Object.keys(o).map(k=>`<span class="rchip">${k}<b>${o[k]}${typeof o[k]==='number'?'/10':''}</b></span>`).join('')+'</div>';}
+
+function openModal(d){
+  const pc=(d.pros||d.cons)?`<div class="pc">
+      <div class="box pro"><h5>Pros</h5><ul>${li(d.pros)}</ul></div>
+      <div class="box con"><h5>Cons</h5><ul>${li(d.cons)}</ul></div></div>`:'';
+  modal.innerHTML=`
+    <div class="mhead ${d.r}">
+      <span class="rail"></span>
+      <button class="close" aria-label="Close" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <h2>${d.n}</h2>
+      <div class="aka">${d.aka||''}</div>
+      <div class="badges">
+        <span class="badge ${RATE_BADGE[d.r]}">${RATE_LABEL[d.r]}</span>
+        ${d.grade?`<span class="badge ${RATE_BADGE[d.r]}">Evidence ${d.grade}</span>`:''}
+        <span class="badge b-y">${catName(d.cat)}</span>
+        ${d.price?`<span class="badge b-y">${d.price}</span>`:''}
+      </div>
+    </div>
+    <div class="mbody">
+      <div class="field"><div class="lab">What it is</div><div class="val">${d.what||'—'}</div></div>
+      <div class="field"><div class="lab">How it works</div><div class="val">${d.how||'—'}</div></div>
+      <div class="field"><div class="lab">Uses</div><div class="val">${d.uses||'—'}</div></div>
+      <div class="field"><div class="lab">Evidence</div><div class="val">${d.evidence||'—'}</div></div>
+      ${pc}
+      <div class="field"><div class="lab">Side effects &amp; risks</div><div class="val">${d.sides||'—'}</div></div>
+      <div class="field"><div class="lab">Who should avoid it</div><div class="val">${d.avoid||'—'}</div></div>
+      <div class="field"><div class="lab">Legal / status</div><div class="val">${d.legal||'—'}</div></div>
+      ${ratingsRow(d.ratings)}
+      <div class="disc">Educational risk/evidence summary — not medical advice and not a dosing guide. Confirm anything with a licensed physician who can order and interpret your labs.</div>
+    </div>`;
+  overlay.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){overlay.classList.remove('open');document.body.style.overflow='';}
+overlay.onclick=e=>{if(e.target===overlay)closeModal();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+render();
+</script>
+</body>
+</html>
