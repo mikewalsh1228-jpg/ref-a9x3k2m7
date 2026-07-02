@@ -735,7 +735,15 @@ const MONITOR={
 'Ivermectin':'Diagnosis-guided use.',
 'Vitamin D / B12 / NAD+ / Glutathione':'25-OH vitamin D level; calcium if high-dose D.'
 };
-D.forEach(d=>{ if(PRICES[d.n])d.priceDetail=PRICES[d.n]; if(MONITOR[d.n])d.monitoring=MONITOR[d.n]; });
+const DEALS_GENERAL='Order-wide codes: NEW CLIENT 5% off all items · MINUS10 = 10% off eligible items · REFERRAL = 10% off regular prices · REWARD = 25% referral reward. Promos and quantity discounts do not stack.';
+D.forEach(d=>{
+  if(PRICES[d.n])d.priceDetail=PRICES[d.n];
+  if(MONITOR[d.n])d.monitoring=MONITOR[d.n];
+  d.deals=DEALS_GENERAL;
+});
+// product-specific promo
+const reta=D.find(x=>x.n==='Retatrutide');
+if(reta)reta.deals='THANKYOU600 = Retatrutide 60mg Kit (10×60mg) at a flat $600 (other items stay normal price). '+DEALS_GENERAL;
 
 /* ---------- render ---------- */
 const grid=document.getElementById('grid');
@@ -808,6 +816,7 @@ function openModal(d){
       ${d.monitoring?`<div class="field"><div class="lab">Monitoring — labs a doctor checks</div><div class="val">${d.monitoring}</div></div>`:''}
       <div class="field"><div class="lab">Legal / status</div><div class="val">${d.legal||'—'}</div></div>
       ${d.priceDetail?`<div class="field"><div class="lab">Pricing (from catalog)</div><div class="val">${d.priceDetail}</div></div>`:''}
+      ${d.deals?`<div class="field"><div class="lab">Deals &amp; discount codes</div><div class="val">${d.deals}</div></div>`:''}
       ${ratingsRow(d.ratings)}
       <div class="disc">Educational risk/evidence summary — not medical advice and not a dosing guide. Confirm anything with a licensed physician who can order and interpret your labs.</div>
     </div>`;
