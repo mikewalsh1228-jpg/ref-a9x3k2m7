@@ -106,6 +106,41 @@ header{position:sticky;top:0;z-index:40;background:rgba(10,15,26,.9);backdrop-fi
 footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--ink-mute);font-size:13px;text-align:center}
 
 @media(max-width:560px){.pc{grid-template-columns:1fr}.mhead h2{font-size:23px}}
+
+/* sort */
+.sortsel{font-family:'Figtree';font-weight:600;font-size:13px;color:var(--ink-soft);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;outline:none}
+.sortsel:focus{border-color:var(--blue)}
+/* deals banner */
+.deals-banner{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 20px;padding:13px 16px;border:1px solid rgba(34,211,238,.3);background:linear-gradient(90deg,rgba(34,211,238,.08),rgba(47,109,246,.05));border-radius:14px;font-size:13.5px;color:var(--ink-soft)}
+.deals-banner b{color:var(--teal);font-family:'Figtree';font-weight:700}
+.deals-banner .code{font-family:'Figtree';font-weight:700;color:#fff;background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:3px 9px}
+/* compare checkbox on card */
+.cmpbox{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:7px;border:1px solid var(--line);background:var(--panel-2);display:grid;place-items:center;cursor:pointer;z-index:3;transition:.15s}
+.cmpbox:hover{border-color:var(--teal)}
+.cmpbox svg{width:14px;height:14px;stroke:var(--ink-mute);fill:none;stroke-width:2.6;opacity:0}
+.cardx.sel{border-color:var(--teal);box-shadow:0 0 0 2px rgba(34,211,238,.3)}
+.cardx.sel .cmpbox{background:var(--teal);border-color:var(--teal)}
+.cardx.sel .cmpbox svg{stroke:#04101f;opacity:1}
+.cardx h3{padding-right:34px}
+/* compare bar */
+.cmpbar{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:55;display:none;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--teal);border-radius:14px;padding:11px 15px;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.cmpbar.show{display:flex}
+.cmpbar .lbl{font-family:'Figtree';font-weight:600;font-size:14px;color:var(--ink-soft)}
+.cmpbar button{font-family:'Figtree';font-weight:700;font-size:14px;border-radius:10px;padding:9px 15px;cursor:pointer;border:1px solid}
+.cmpbar .go{background:var(--teal);border-color:var(--teal);color:#04101f}
+.cmpbar .go:disabled{opacity:.4;cursor:not-allowed}
+.cmpbar .clr{background:transparent;border-color:var(--line);color:var(--ink-soft)}
+/* compare modal */
+.cmpmodal{background:linear-gradient(180deg,var(--panel),var(--bg-2));border:1px solid var(--line);border-radius:20px;max-width:980px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:pop .18s ease}
+.cmphead{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.cmphead h2{font-size:22px;font-weight:900}
+.cmpwrap{overflow-x:auto;padding:8px 12px 20px}
+table.cmp{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+table.cmp th,table.cmp td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+table.cmp thead th{font-family:'Figtree';font-weight:800;font-size:15px;color:var(--ink);border-bottom:1px solid var(--line)}
+table.cmp tbody th{font-family:'Figtree';font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-bright);white-space:nowrap;width:140px}
+table.cmp td{color:var(--ink-soft)}
+table.cmp ul{margin:0;padding-left:15px}
 </style>
 </head>
 <body>
@@ -118,6 +153,12 @@ footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--ink-mute
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input id="q" type="text" placeholder="Search a compound (e.g. tirzepatide, tren, BPC)…" autocomplete="off">
       </div>
+      <select class="sortsel" id="sort" aria-label="Sort compounds">
+        <option value="az">Sort: A–Z</option>
+        <option value="safety">Sort: Safest first</option>
+        <option value="evidence">Sort: Best evidence</option>
+        <option value="risk">Sort: Rating (safe→risk)</option>
+      </select>
       <span class="count" id="count"></span>
     </div>
     <div class="filters" id="cats"></div>
@@ -133,8 +174,19 @@ footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--ink-mute
 
 <main class="wrap">
   <div class="note"><b>Reference only — not medical or dosing advice.</b> Ratings reflect evidence quality and safety burden. Most items are not FDA-approved for the uses described; many are controlled substances; gray-market products are often mislabeled. Verify everything with a physician who can read your labs.</div>
+  <div class="deals-banner" id="dealsBanner"></div>
   <div class="grid" id="grid"></div>
 </main>
+
+<div class="cmpbar" id="cmpbar">
+  <span class="lbl" id="cmplbl">0 selected</span>
+  <button class="go" id="cmpgo" disabled>Compare</button>
+  <button class="clr" id="cmpclr">Clear</button>
+</div>
+
+<div class="overlay" id="cmpOverlay">
+  <div class="cmpmodal" id="cmpmodal"></div>
+</div>
 
 <div class="overlay" id="overlay">
   <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
@@ -1196,21 +1248,45 @@ function matches(d){
 }
 function catName(id){return (CATS.find(c=>c.id===id)||{}).name||id;}
 
+let curSort='az';
+const selected=new Set();
+function gradeNum(g){if(!g)return 0;const m=String(g).toUpperCase().match(/[A-F]/);const map={A:5,B:4,C:3,D:2,F:1};return m?(map[m[0]]||0):0;}
+function num(d,k){return (d.ratings&&typeof d.ratings[k]==='number')?d.ratings[k]:null;}
+function sortList(list){
+  if(curSort==='safety')return list.sort((a,b)=>((num(b,'Safety')??-1)-(num(a,'Safety')??-1))||a.n.localeCompare(b.n));
+  if(curSort==='evidence')return list.sort((a,b)=>(((num(b,'Evidence')??gradeNum(b.grade))-(num(a,'Evidence')??gradeNum(a.grade))))||a.n.localeCompare(b.n));
+  if(curSort==='risk'){const o={g:0,y:1,o:2,r:3};return list.sort((a,b)=>(o[a.r]-o[b.r])||a.n.localeCompare(b.n));}
+  return list.sort((a,b)=>a.n.localeCompare(b.n));
+}
 function render(){
-  const list=D.filter(matches).sort((a,b)=>a.n.localeCompare(b.n));
+  const list=sortList(D.filter(matches));
   grid.innerHTML='';
   countEl.textContent=list.length+' of '+D.length;
   if(!list.length){grid.innerHTML='<div class="empty">No compounds match your search.</div>';return;}
-  list.forEach((d,idx)=>{
+  list.forEach((d)=>{
     const el=document.createElement('div');
-    el.className='cardx '+d.r;
+    el.className='cardx '+d.r+(selected.has(d.n)?' sel':'');
     el.tabIndex=0;
-    el.innerHTML=`<h3>${d.n}</h3><div class="cls">${d.aka||''}</div>
+    el.innerHTML=`<div class="cmpbox" title="Add to compare"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <h3>${d.n}</h3><div class="cls">${d.aka||''}</div>
       <div class="foot"><span class="cat-tag">${catName(d.cat)}</span><span class="price-tag">${d.price||''}</span></div>`;
     el.onclick=()=>openModal(d);
     el.onkeydown=e=>{if(e.key==='Enter')openModal(d);};
+    el.querySelector('.cmpbox').onclick=(e)=>{e.stopPropagation();toggleSel(d,el);};
     grid.appendChild(el);
   });
+}
+function toggleSel(d,el){
+  if(selected.has(d.n)){selected.delete(d.n);}
+  else{ if(selected.size>=3){return;} selected.add(d.n); }
+  el.classList.toggle('sel',selected.has(d.n));
+  updateCmpBar();
+}
+function updateCmpBar(){
+  const n=selected.size;
+  document.getElementById('cmplbl').textContent=n+' selected'+(n>=3?' (max)':'');
+  document.getElementById('cmpgo').disabled=n<2;
+  document.getElementById('cmpbar').classList.toggle('show',n>0);
 }
 
 function li(arr){return (arr||[]).map(x=>`<li>${x}</li>`).join('');}
@@ -1255,7 +1331,53 @@ function openModal(d){
 }
 function closeModal(){overlay.classList.remove('open');document.body.style.overflow='';}
 overlay.onclick=e=>{if(e.target===overlay)closeModal();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+/* ---------- sort ---------- */
+document.getElementById('sort').onchange=e=>{curSort=e.target.value;render();};
+
+/* ---------- deals banner ---------- */
+document.getElementById('dealsBanner').innerHTML=
+  '<b>Deals:</b> <span class="code">NEW CLIENT 5%</span> off all items · '+
+  '<span class="code">MINUS10</span> 10% off · '+
+  '<span class="code">REFERRAL</span> 10% · '+
+  '<span class="code">REWARD</span> 25% (referral) · '+
+  '<span class="code">THANKYOU600</span> Retatrutide 60mg kit $600 · codes do not stack.';
+
+/* ---------- compare ---------- */
+const cmpOverlay=document.getElementById('cmpOverlay');
+const cmpmodal=document.getElementById('cmpmodal');
+document.getElementById('cmpclr').onclick=()=>{selected.clear();render();updateCmpBar();};
+document.getElementById('cmpgo').onclick=openCompare;
+function cList(a){return (a&&a.length)?('<ul>'+a.map(x=>`<li>${x}</li>`).join('')+'</ul>'):'—';}
+function openCompare(){
+  const items=D.filter(x=>selected.has(x.n));
+  if(items.length<2)return;
+  const row=(label,fn)=>`<tr><th>${label}</th>${items.map(d=>`<td>${fn(d)}</td>`).join('')}</tr>`;
+  cmpmodal.innerHTML=`
+    <div class="cmphead"><h2>Compare</h2>
+      <button class="close" aria-label="Close" onclick="closeCompare()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="cmpwrap"><table class="cmp">
+      <thead><tr><th></th>${items.map(d=>`<th>${d.n}</th>`).join('')}</tr></thead>
+      <tbody>
+        ${row('Rating',d=>`<span class="badge ${RATE_BADGE[d.r]}">${RATE_LABEL[d.r]}</span>`)}
+        ${row('Evidence grade',d=>d.grade||'—')}
+        ${row('Category',d=>catName(d.cat))}
+        ${row('Timeline',d=>d.timeline||'—')}
+        ${row('Pricing',d=>d.priceDetail||d.price||'—')}
+        ${row('Pros',d=>cList(d.pros))}
+        ${row('Cons',d=>cList(d.cons))}
+        ${row('Side effects',d=>d.sides||'—')}
+        ${row('Who should avoid',d=>d.avoid||'—')}
+        ${row('Monitoring',d=>d.monitoring||'—')}
+        ${row('Alternatives',d=>d.alt||'—')}
+      </tbody></table></div>`;
+  cmpOverlay.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeCompare(){cmpOverlay.classList.remove('open');document.body.style.overflow='';}
+cmpOverlay.onclick=e=>{if(e.target===cmpOverlay)closeCompare();};
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCompare();}});
 
 render();
 </script>
