@@ -197,6 +197,21 @@ table.cmp ul{margin:0;padding-left:15px}
 .reslink b{display:block;color:var(--ink);font-family:'Figtree';font-weight:700;font-size:14px}
 .reslink span{color:var(--ink-soft);font-size:12.5px}
 .resphone{color:var(--teal);font-weight:700}
+/* catalog */
+.catmodal{background:linear-gradient(180deg,var(--panel),var(--bg-2));border:1px solid var(--line);border-radius:20px;max-width:760px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:pop .18s ease;max-height:88vh;display:flex;flex-direction:column}
+.catmodal .cmphead{flex:0 0 auto}
+.catsearch{padding:12px 20px 4px}
+.catsearch input{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:14px;padding:9px 12px;border-radius:10px;outline:none;font-family:inherit}
+.catsearch input:focus{border-color:var(--blue)}
+.catlink{display:inline-flex;align-items:center;gap:7px;margin:6px 20px 8px;font-family:'Figtree';font-weight:700;font-size:13px;color:#04101f;background:var(--teal);border-radius:10px;padding:9px 14px;text-decoration:none}
+.catwrap{overflow-y:auto;padding:4px 20px 22px}
+.catsec{font-family:'Figtree';font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-bright);margin:16px 0 6px;position:sticky;top:0;background:var(--bg-2);padding:4px 0}
+.catrow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13.5px}
+.catrow .cn{color:var(--ink);font-weight:600}
+.catrow .cs{color:var(--ink-mute);font-size:12.5px}
+.catrow .cp{color:var(--ink);font-family:'Figtree';font-weight:700;white-space:nowrap}
+.catrow.oos{opacity:.5}
+.catrow .oosb{color:#ff9a9a;font-size:9.5px;font-weight:800;margin-left:6px;letter-spacing:.04em}
 /* print */
 @media print{
   header,.deals-banner,.cmpbar,.calcbtn,.iconbtn,.sortsel,.search,.filters,.note,.overlay{display:none!important}
@@ -222,6 +237,7 @@ table.cmp ul{margin:0;padding-left:15px}
       <button class="iconbtn" id="labsbtn" title="Lab-value interpreter"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-4 8a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-4-8V3"/></svg>Labs</button>
       <button class="iconbtn" id="resbtn" title="Safety & lab resources"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Resources</button>
       <button class="iconbtn" id="printbtn" title="Print / Save PDF"><svg viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>Print</button>
+      <button class="iconbtn" id="catbtn" title="Full catalog &amp; prices"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>Catalog</button>
       <button class="iconbtn" id="themebtn" title="Toggle light/dark"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
       <select class="sortsel" id="sort" aria-label="Sort compounds">
         <option value="az">Sort: A–Z</option>
@@ -296,6 +312,15 @@ table.cmp ul{margin:0;padding-left:15px}
   <div class="cmpmodal">
     <div class="cmphead"><h2>Interaction &amp; Overlap Check</h2><button class="close" aria-label="Close" onclick="closeInt()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <div class="cmpwrap" id="intBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="catOverlay">
+  <div class="catmodal">
+    <div class="cmphead"><h2>Catalog &amp; Prices</h2><button class="close" aria-label="Close" onclick="closeCat()"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="catsearch"><input id="catQ" type="search" placeholder="Filter the catalog…" autocomplete="off"></div>
+    <a class="catlink" id="catFormLink" target="_blank" rel="noopener" href="https://script.google.com/macros/s/AKfycbypYqCxwXZBcYhMtkghQ41uzLwGhTaO8ovKyDs0gzJW8k1MfBR6hcmlscTjjXlsVOk9HA/exec"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#04101f;fill:none;stroke-width:2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/></svg>Open live order form ↗</a>
+    <div class="catwrap" id="catBody"></div>
   </div>
 </div>
 
@@ -1805,9 +1830,91 @@ function closeInt(){document.getElementById('intOverlay').classList.remove('open
 document.getElementById('intOverlay').onclick=e=>{if(e.target.id==='intOverlay')closeInt();};
 document.getElementById('intgo').onclick=openInt;
 
+/* ---------- catalog tab (transcribed from the order form) ---------- */
+const CATALOG=[
+ {s:'Peptides & injectable support',items:[
+  ['AOD-9604','5mg','$64 ($80)','needs acid water'],['AOD-9604','10mg','$104 ($130)',''],['Acid Water','10mL','$15','for AOD & SLU'],
+  ['BPC-157','5mg','$36 ($45)','buy 5 $35 ea'],['BPC-157','10mg','$56 ($70)','buy 5 $55 ea'],['B12','10mg','$32 ($40)',''],
+  ['Cagrilintide','10mg','$112 ($140)',''],['CJC-1295 + Ipamorelin','5/10mg','$68 ($85)',''],['CJC-1295 No-DAC','10mg','$48 ($60)',''],
+  ['DSIP','10mg','$60 ($75)',''],['Epithalon','10mg','$48 ($60)',''],['Epithalon','40mg','$120 ($150)','OOS'],
+  ['Follistatin','1mg','$80 ($100)',''],['Frag 176-191','5mg','$40 ($50)',''],['GHK-Cu','50mg','$32 ($40)',''],['GHK-Cu','100mg','$64 ($80)','new'],
+  ['GHRP-2','5mg','$24 ($30)',''],['GHRP-6','5mg','$24 ($30)',''],['Glow (BPC/TB/GHK)','70mg','$96 ($120)',''],['Gonadorelin','2mg','$36 ($45)',''],
+  ['Hexarelin','5mg','$36 ($45)','new'],['IGF-1','1mg','$72 ($90)',''],['Ipamorelin','5mg','$48 ($60)',''],['Ipamorelin','10mg','$72 ($90)',''],
+  ['KPV','10mg','$48 ($60)',''],['Kisspeptin','10mg','$48 ($60)',''],['Klow (BPC/TB/GHK/KPV)','80mg','$104 ($130)','OOS'],
+  ['Mazdutide','10mg','$120 ($150)',''],['Melanotan 2','10mg','$32 ($40)',''],['MOTS-c','10mg','$40 ($50)',''],['MOTS-c','40mg','$80 ($100)',''],
+  ['NAD+','1000mg','$120 ($150)',''],['PEG-MGF','5mg','$64 ($80)','new'],['PT-141','10mg','$24 ($30)',''],['Pinealon','20mg','$60 ($75)',''],
+  ['Oxytocin','10mg','$52 ($65)','new'],['Retatrutide','5mg','$64 ($80)','OOS'],['Retatrutide','10mg','$100 ($125)',''],['Retatrutide','20mg','$120 ($150)',''],
+  ['Retatrutide','30mg','$184 ($230)',''],['Retatrutide','60mg','$336 ($420)',''],['Selank','10mg','$52 ($65)',''],
+  ['Semaglutide Kit (5×2mg)','10mg','$160 ($200)',''],['Semaglutide','10mg','$56 ($70)',''],['Semaglutide','20mg','$96 ($120)',''],['Semaglutide','30mg','$152 ($190)',''],
+  ['Semax','10mg','$52 ($65)',''],['Sermorelin','5mg','$32 ($40)',''],['Sermorelin','10mg','$56 ($70)',''],
+  ['SLU-PP-332','5mg','$48 ($60)','needs acid water'],['SLU-PP-332','10mg','$80 ($100)','OOS'],['SNAP-8','10mg','$28 ($35)','new'],
+  ['SS-31','50mg','$120 ($150)',''],['Survodutide','10mg','$144 ($180)',''],['TB-500','5mg','$40 ($50)',''],['TB-500','10mg','$64 ($80)',''],
+  ['TB-500/BPC-157 Combo','20mg','$80 ($100)',''],['Tesamorelin','5mg','$32 ($40)',''],['Tesamorelin','10mg','$60 ($75)',''],
+  ['Tirzepatide','10mg','$64 ($80)',''],['Tirzepatide','30mg','$176 ($220)',''],['Tirzepatide','60mg','$320 ($400)',''],['Tirzepatide','60mg×5','$1,040 ($1,300)',''],
+  ['Thymosin Alpha-1','10mg','$48 ($60)',''],['VIP','10mg','$60 ($75)','new'],['Vesugen','20mg','$48 ($60)','new'],['5-Amino-1MQ (inj)','50mg','$64 ($80)',''],
+  ['BAC Water','10mL','$10',''],['Lipo Blend (MIC)','216mg/10ml','$40 ($50)',''],['L-Glutathione','1500mg/10ml','$64 ($80)',''],['ASCEND Stack','multi-vial','$720 ($900)','']
+ ]},
+ {s:'Kits (10-packs)',items:[
+  ['BPC-157 Kit','10×5mg','$350',''],['BPC-157 Kit','10×10mg','$550',''],['Wolverine Blend Kit','10×10/10mg','$1,000',''],['CJC-1295 + Ipamorelin Kit','10×5/10mg','$1,000',''],
+  ['Cagrilintide Kit','10×10mg','$1,250',''],['GHK-Cu Kit','10×50mg','$500',''],['GHK-Cu Kit','10×100mg','$875',''],['IGF-1 LR3 Kit','10×1mg','$1,350',''],
+  ['KPV Kit','10×10mg','$450',''],['MOTS-c Kit','10×10mg','$750',''],['MOTS-c Kit','10×40mg','$1,450',''],['Melanotan 2 Kit','10×10mg','$350',''],['PT-141 Kit','10×10mg','$400',''],
+  ['Retatrutide Kit','10×5mg','$700',''],['Retatrutide Kit','10×10mg','$1,250',''],['Retatrutide Kit','10×20mg','$1,500',''],['Retatrutide Kit','10×30mg','$1,750',''],['Retatrutide Kit','10×60mg','$2,100',''],
+  ['Semaglutide Kit','10×10mg','$675',''],['Semaglutide Kit','10×20mg','$900',''],['Semaglutide Kit','10×30mg','$1,250',''],['Sermorelin Kit','10×5mg','$650',''],['SS-31 Kit','10×50mg','$1,350',''],
+  ['TB-500 Kit','10×5mg','$475',''],['TB-500 Kit','10×10mg','$850',''],['Tesamorelin Kit','10×5mg','$750',''],['Tesamorelin Kit','10×10mg','$1,350',''],
+  ['Tirzepatide Kit','10×10mg','$898',''],['Tirzepatide Kit','10×30mg','$1,200',''],['Tirzepatide Kit','10×60mg','$2,350','']
+ ]},
+ {s:'Oral peptides',items:[
+  ['Semaglutide Oral','3mg 30ct','$240 ($300)',''],['Tesofensine','500mcg 50ct','$80 ($100)',''],['Tirzepatide Oral','4mg 30ct','$240 ($300)','OOS'],
+  ['Wolverine Stack','30ct','$180 ($225)','OOS'],['5-Amino-1MQ Oral','50mg 50ct','$96 ($120)',''],['SLU-PP-332 Pills','250mcg 60ct','$52',''],['SLU-PP-332 Pills','500mcg 60ct','$72',''],['SLU-PP-332 Pills','1mg 60ct','$96',''],
+  ['Methylene Blue','20mg 50ct','$48 ($60)',''],['BPC-157 Oral','500mcg 30ct','$80 ($100)','']
+ ]},
+ {s:'Injectables (10ml) — androgens & hormones',items:[
+  ['Anadrol (inj)','50mg/ml','$65','OOS'],['Boldenone Cyp (DHB)','100mg','$50',''],['Deca','300mg','$75',''],['EQ','300mg','$85',''],
+  ['Test C','50mg','$40',''],['Test C (TRT)','200mg','$65',''],['Test C','250mg','$75',''],['Test E','250mg','$75',''],['Test P','100mg','$75',''],['Test 400 blend','400mg','$100',''],['Sustanon','250mg','$75',''],
+  ['NPP','100mg','$85',''],['Tren A','100mg','$85',''],['Tren E','200mg','$100',''],['Tren Hex (Parabolan)','100mg','$90',''],['Tri-Tren','225mg','$120',''],
+  ['Mast P','100mg','$100',''],['Mast E','200mg','$125',''],['MENT (Trestolone)','50mg','$130',''],['Primo E (inj)','100/150/200mg','—','OOS'],['RipBlend','225mg','$120',''],
+  ['HMG','75iu','$65',''],['HCG','5K IU','$50',''],['HCG','10K IU','$90','OOS'],['HGH','100iu','$250',''],['HGH','150iu','$350','OOS'],['HGH','200iu','$450','OOS'],['BAC Water','10mL','$10','']
+ ]},
+ {s:'Orals — androgens & ancillaries',items:[
+  ['Accutane','10mg 50ct','$100',''],['Anadrol','50mg 50ct','$125',''],['Anavar','10mg 50ct','$100','OOS'],['Anavar','30mg 50ct','$125','OOS'],
+  ['Arimidex','1mg 50ct','$75',''],['Aromasin','25mg 50ct','$80',''],['Clen','40mcg 50ct','$75',''],['Clomid','50mg 50ct','$70',''],['Cabergoline','0.5mg 10ct','$50',''],
+  ['Cock Bombs','50ct','$110',''],['Cialis / Tadalafil','20mg 50ct','$100',''],['Dianabol','40mg 50ct','$80',''],['Enclomiphene','12.5mg 50ct','$125',''],['Halo','10mg 30ct','$80',''],
+  ['Ivermectin','5mg 50ct','$120',''],['Nolvadex / Tamoxifen','25mg 50ct','$75',''],['Primo Acetate','20mg 50ct','$100',''],['Proviron','50mg 50ct','$100',''],['Superdrol','10mg 30ct','$80',''],
+  ['Turinabol','30mg 50ct','$100',''],['Winstrol','10mg 50ct','$75',''],['Winstrol','50mg 50ct','$125',''],['Letrozole','2.5mg 50ct','$60',''],['Viagra','50mg 50ct','$85',''],['T4 / Thyroxine','40mcg 50ct','$75',''],['T3','50ct','$75','']
+ ]},
+ {s:'SARMs',items:[
+  ['MK-677','12.5mg 60ct','$110',''],['YK-11','10mg 50ct','$100',''],['RAD-140','10mg 60ct','$140',''],['Ostarine MK-2866','20mg 60ct','$90',''],['GW-501516 (Cardarine)','25mg 50ct','$85',''],['Stenabolic','20mg 60ct','$80','']
+ ]},
+ {s:'Pharmaceutical-grade (limited)',items:[
+  ['Amoxicillin','500mg 25ct','$30',''],['Metformin','1000mg 30ct','$100',''],['Atorvastatin','40mg 30ct','$50',''],['Doxycycline','100mg 14ct','$50',''],['Metoprolol','100mg 30ct','$40',''],
+  ['Rosuvastatin','20mg 30ct','$50',''],['Gabapentin','100mg 30ct','$80',''],['Losartan','50mg 30ct','$50',''],['Furosemide','20mg 30ct','$50',''],['Buspirone','10mg 30ct','$110',''],
+  ['Spironolactone','50mg 30ct','$60',''],['Ezetimibe','10mg 30ct','$50',''],['Vitamin D','1250mcg 12caps','$65',''],['Lidocaine Ointment 5%','50g jar','$50',''],['Nebivolol','5mg 30ct','$60',''],
+  ['Telmisartan','40mg 30ct','$65',''],['Telmisartan','80mg 30ct','$75','OOS'],['Viagra (pharma)','100mg 20ct','$120','']
+ ]}
+];
+function catRender(){
+  const q=norm(document.getElementById('catQ').value||'');
+  let h='';
+  CATALOG.forEach(sec=>{
+    const items=sec.items.filter(it=>!q||norm(it[0]+' '+(it[1]||'')).includes(q));
+    if(!items.length)return;
+    h+='<div class="catsec">'+sec.s+'</div>';
+    items.forEach(it=>{
+      const oos=(it[3]||'').toUpperCase().indexOf('OOS')>-1;
+      const note=(it[3]&&!oos)?' <span class="cs">· '+it[3]+'</span>':'';
+      h+='<div class="catrow'+(oos?' oos':'')+'"><div><span class="cn">'+it[0]+'</span> <span class="cs">'+(it[1]||'')+'</span>'+(oos?'<span class="oosb">OUT OF STOCK</span>':'')+note+'</div><div class="cp">'+it[2]+'</div></div>';
+    });
+  });
+  document.getElementById('catBody').innerHTML=h||'<div class="cnote" style="border:none">No matches.</div>';
+}
+document.getElementById('catbtn').onclick=()=>{document.getElementById('catOverlay').classList.add('open');document.body.style.overflow='hidden';catRender();};
+function closeCat(){document.getElementById('catOverlay').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('catOverlay').onclick=e=>{if(e.target.id==='catOverlay')closeCat();};
+document.getElementById('catQ').oninput=catRender;
+
 /* ---------- command palette (⌘K / Ctrl-K) focuses search ---------- */
 document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();const q=document.getElementById('q');q.focus();q.select();window.scrollTo({top:0,behavior:'smooth'});}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLabs();closeInt();closeRes();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLabs();closeInt();closeRes();closeCat();}});
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCompare();closeCalc();}});
 
