@@ -161,7 +161,7 @@ table.cmp ul{margin:0;padding-left:15px}
 .cfield label{display:block;font-family:'Figtree';font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-bright);margin-bottom:6px}
 .cfield input,.cfield select{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:15px;padding:10px 12px;border-radius:10px;font-family:inherit;outline:none}
 .cfield input:focus,.cfield select:focus{border-color:var(--teal)}
-.crow{display:flex;gap:8px}.crow input{flex:1}
+.crow{display:flex;gap:8px}.crow input{flex:1;min-width:0;font-size:18px;font-weight:800}.crow select{flex:0 0 96px;width:96px}
 .cbig{background:linear-gradient(90deg,rgba(34,211,238,.12),transparent);border:1px solid rgba(34,211,238,.3);border-radius:14px;padding:16px;margin:18px 0 0;text-align:center}
 .cbig span{display:block;font-family:'Figtree';font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute)}
 .cbig b{display:block;font-family:'Figtree';font-weight:900;font-size:34px;color:#fff;letter-spacing:-.02em;margin:2px 0}
@@ -1749,7 +1749,7 @@ function calc(){
   const units=volMl*100;
   const mcgPerUnit=concMcgMl/100;
   const dosesPerVial=(vial*1000)/doseMcg;
-  out.innerHTML='<div class="cbig"><span>Draw to this line</span><b>'+fmt(units)+' units</b><small>'+fmt(volMl,3)+' mL on a U-100 insulin syringe</small></div>'
+  out.innerHTML='<div class="cbig"><span>Draw to this line</span><b>'+fmt(units)+' units</b><small>your '+dose+' '+unit+' dose = '+fmt(volMl,3)+' mL on a U-100 insulin syringe</small></div>'
     +'<div class="cgrid">'
     +'<div class="ccell"><span>Per unit</span><b>'+fmt(mcgPerUnit)+'</b><small>mcg / unit</small></div>'
     +'<div class="ccell"><span>Concentration</span><b>'+fmt(vial/water,2)+'</b><small>mg / mL</small></div>'
